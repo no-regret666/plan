@@ -36,7 +36,7 @@ void strbuf_rtrim(struct strbuf *sb);
 void strbuf_ltrim(struct strbuf *sb);
 void strbuf_remove(struct strbuf *sb, size_t pos, size_t len);
 
-ssize_t strbuf_read(struct strbuf *sb, int fd, size_t hint);
+size_t strbuf_read(struct strbuf *sb, int fd, size_t hint);
 int strbuf_getline(struct strbuf *sb, FILE *fp);
 
 struct strbuf **strbuf_split_buf(const char *str, size_t len, int terminator, int max);
