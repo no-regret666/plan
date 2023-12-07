@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include<stdbool.h>
+#include <stdbool.h>
+#include <ctype.h>
 struct strbuf{
     int len; // 当前缓冲区（字符串）长度
     int alloc; // 当前缓冲区（字符串）容量
@@ -90,7 +91,8 @@ void strbuf_add(struct strbuf *sb, const void *data, size_t len){
     //     for(int j = 0;j < len;j++)
     //     sb->buf[i] = str[j];
     // }
-    memcpy(sb->buf + sb->len, data, len);
+    //上述方法都是错误的
+    memcpy(sb->buf + sb->len, data, len);//memcpy是一个很好用的函数
     sb->len += len;
     sb->buf[sb->len] = '\0';
 };
@@ -144,7 +146,7 @@ void strbuf_insert(struct strbuf *sb, size_t pos, const void *data, size_t len){
     //      sb->buf[i + len] = str[j++]; 
     // }
     //memmove(sb->buf + pos + len, str, sb->len - pos);
-    memmove(sb->buf + pos + len, sb->buf + pos, sb->len - pos);
+    memmove(sb->buf + pos + len, sb->buf + pos, sb->len - pos);//memmove也是一个很好用的函数
     memcpy(sb->buf + pos,data,len);
     sb->len += len;
     sb->buf[sb->len] = '\0';
@@ -153,27 +155,64 @@ void strbuf_insert(struct strbuf *sb, size_t pos, const void *data, size_t len){
 // Part C
 // 去除 sb 缓冲区右端的所有 空格，tab, '\t'。
 void strbuf_rtrim(struct strbuf *sb){
-
+    int i = sb->len - 1;
+    while(isblank(sb->buf[i])){
+        sb->len--;
+        sb->buf[i] = '\0';
+        i--;
+    }
 };
 
 // 去除 sb 缓冲区左端的所有 空格，tab, '\t'。
+void reverse(char* s){
+    int len = strlen(s);
+    int i = 0;
+    char c;
+    while (i <= len / 2 - 1)
+    {
+        c = *(s + i);
+        *(s + i) = *(s + len - 1 - i);
+        *(s + len - 1 - i) = c;
+        i++;
+    }
+}
 void strbuf_ltrim(struct strbuf *sb){
-
+    //法1：翻转字符串，然后调用strbuf_rtrim,再翻转字符串
+    //reverse(sb->buf);
+    //strbuf_rtrim(sb);
+    //reverse(sb->buf);
+    //法2：直接移除左端元素
+    int i = 0;
+    while(isblank(sb->buf[i])){
+        memmove(sb->buf,sb->buf + 1,sb->len - 1);
+        sb->len--;
+    }
 };
 
 // 删除 sb 缓冲区从 pos 坐标长度为 len 的内容。
 void strbuf_remove(struct strbuf *sb, size_t pos, size_t len){
-
+    memmove(sb->buf + pos,sb->buf + pos + len,sb->len - pos - len);
+    sb->len -= len;
 };
 
 // Part D
 // sb 增长 hint ? hint : 8192 大小， 然后将文件描述符为 fd 的所有文件内容追加到 sb 中。
 size_t strbuf_read(struct strbuf *sb, int fd, size_t hint){
+    strbuf_grow(sb, (hint ? hint : 8192) + 1);
+    FILE *fp = fdopen(fd,"r+");
+    int ch;
+    while((ch = fgetc(fp)) != EOF){
+        strbuf_addch(sb,ch);
+    }
     return 0;
 };
 
 // 将 将文件句柄为 fp 的一行内容（抛弃换行符）读取到 sb 。
 int strbuf_getline(struct strbuf *sb, FILE *fp){
+    int ch;
+    while((ch = fgetc(fp)) != EOF && ch != '\n'){
+        strbuf_addch(sb,ch);
+    }
     return 0;
 };
 
@@ -182,20 +221,44 @@ int strbuf_getline(struct strbuf *sb, FILE *fp){
 // 将长度为 len 的字符串 str 根据切割字符 terminator 切成多个 strbuf,并从结果返回，max 可以用来限定
 // 最大切割数量。返回 struct strbuf 的指针数组，数组的最后元素为 NULL
 struct strbuf **strbuf_split_buf(const char *str, size_t len, int terminator, int max){
-    return 0;
+    strbuf **result = (strbuf **)malloc(max * sizeof(strbuf*));
+    char s[max][len];
+    int i,j = 0,k = 0;
+    for(i = 0;i < max;i++){
+        k = 0;
+        while(str[j] != (char)terminator && j < len){
+            s[i][k++] = str[j];
+            j++;
+        }
+        if(j == len)
+        break;
+        j++;
+    } //现在i的值就是切割后的strbuf的数量
+    for(j = 0;j <= i;j++){
+        strbuf_addstr(result[i],s[i]);
+    }
+    return result;
 };
 
 // 2.实现判断一个 strbuf 是否以指定字符串开头的功能（C 系字符串函数的另一个痛点）
-// target_str : 目标字符串，str : 前缀字符串，strlen : target_str 长度 ，前缀相同返回 true 失败
+// target_str : 目标字符串，str : 前缀字符串，strnlen : target_str 长度 ，前缀相同返回 true 失败
 // 返回 false
 bool strbuf_begin_judge(char *target_str, const char *str, int strnlen){
-    return 0;
+    if(str == NULL)
+    return true;
+    else 
+    return strncmp(target_str,str,strlen(str)) == 0;
 };
 
 // 3.获取字符串从坐标 [begin, end) 的所有内容（可以分成引用和拷贝两个模式） 。
 // target_str : 目标字符串，begin : 开始下标，end 结束下标。len : target_buf的长度，参数不合法返回
 //  NULL. 下标从0开始，[begin, end)区间。
 char *strbuf_get_mid_buf(char *target_buf, int begin, int end, int len){
-    char *result;
+    if(target_buf == NULL)
+    return NULL;
+    //char result[len]; 起初是这样写的，但结果总是NULL
+    char *result = (char *)malloc(len);
+    memcpy(result,target_buf + begin,end - begin);
+    result[end - begin] = '\0';
     return result;
 };
