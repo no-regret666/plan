@@ -221,22 +221,59 @@ int strbuf_getline(struct strbuf *sb, FILE *fp){
 // 将长度为 len 的字符串 str 根据切割字符 terminator 切成多个 strbuf,并从结果返回，max 可以用来限定
 // 最大切割数量。返回 struct strbuf 的指针数组，数组的最后元素为 NULL
 struct strbuf **strbuf_split_buf(const char *str, size_t len, int terminator, int max){
-    strbuf **result = (strbuf **)malloc(max * sizeof(strbuf*));
-    char s[max][len];
-    int i,j = 0,k = 0;
-    for(i = 0;i < max;i++){
-        k = 0;
-        while(str[j] != (char)terminator && j < len){
-            s[i][k++] = str[j];
-            j++;
+    char ch = (char)terminator;
+    int cnt = 0; //实际切割数
+    bool inbuf = false;
+    int i = 0;
+    while(i < len){
+        if(((*(str + i)) != ch) && !inbuf){
+            inbuf = true;
+            cnt++;
         }
+        if(((*(str + i)) == ch) && inbuf)
+        inbuf = false;
+        i++;
+    } //计算实际切割数
+    cnt = cnt < max ? cnt : max; //实际切割数与最大切割数量相比取较小值
+    struct strbuf **result = (struct strbuf **)malloc((cnt + 1) * sizeof(struct strbuf*));
+    if(result == NULL){
+        fprintf(stderr, "分配内存失败\n");
+        exit(EXIT_FAILURE);
+    }
+    char **s = (char **)malloc(cnt * sizeof(s));
+    int *str_len = (int *)malloc(cnt * sizeof(int));
+    int j = 0,k = 0;
+    for(i = 0;i < cnt;i++){
+        result[i] = (struct strbuf *)malloc(sizeof(struct strbuf));
+        strbuf_init(result[i],len + 1);
+    }
+    for(i = 0;i < cnt;i++){
+        str_len[i] = 0;
+        *(s + i) = (char *)malloc((len + 1) * sizeof(char));
+        k = 0;
+        while(j < len && str[j] == ch)
+        j++;
+        while(j < len && str[j] != ch){
+            *(*(s + i) + k) = str[j];
+            j++;
+            k++;
+            str_len[i]++;
+        }
+        *(*(s + i) + k) = '\0';
+        str_len[i]++;
         if(j == len)
         break;
         j++;
-    } //现在i的值就是切割后的strbuf的数量
-    for(j = 0;j <= i;j++){
-        strbuf_addstr(result[i],s[i]);
     }
+    for(i = 0;i < cnt;i++){
+        memcpy(result[i]->buf,*(s + i),str_len[i] - 1);
+        result[i]->buf[str_len[i] - 1] = '\0';
+        result[i]->len = str_len[i] - 1;
+        free(*(s + i));
+    }
+    result[cnt] = NULL;
+    free(s);
+    free(str_len);
     return result;
 };
 

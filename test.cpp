@@ -744,7 +744,7 @@ TEST(StrBufTestCHALLENGE, splitBuf2) {
 
 TEST(StrBufTestCHALLENGE, splitBuf3) {
 
-    char string[] = "   123 345    3123   3123  ";
+    char string[] = "    123 345    3123   3123  ";
     strbuf **result = strbuf_split_buf(string, strlen(string), ' ', 2);
     ASSERT_NE(string, nullptr);
     ASSERT_EQ(result[2], nullptr);
