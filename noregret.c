@@ -26,6 +26,7 @@ void strbuf_init(struct strbuf *sb, size_t alloc){
 void strbuf_attach(struct strbuf *sb, void *str, size_t len, size_t alloc){
     sb->len = len;
     sb->alloc = alloc;
+
     sb->buf = (char *)str;
 };
 

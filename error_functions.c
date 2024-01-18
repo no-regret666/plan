@@ -93,6 +93,7 @@ errExitEN(int errnum,const char *format,...)
     va_end(argList);
 
     terminate(TRUE);
+
 } // 主要用于执行POSIX标准的程序出错处理，因为它们的返回值代表了errno
 
 void
