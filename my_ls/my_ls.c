@@ -12,8 +12,8 @@
 
 void restored_name(struct dirent *cur_dirent);
 void do_ls(char *dirname);
-void sort(char **filenames);
-void mode_to_letters(mode_t num,char *mode);
+//void sort(char **filenames);
+void mode_to_letters(mode_t num, char *mode);
 void ls_l(struct stat sb);
 
 // struct info_mold{
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
                     has_l = 1;
                     break;
                 case 'R':
-                    has_l = 1;
+                    has_R = 1;
                     break;
                 case 't':
                     has_t = 1;
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     }
     if (flag == 0)
         do_ls(".");
- 
+
     return 0;
 }
 
@@ -110,7 +110,7 @@ void do_ls(char *dirname)
         {
             restored_name(cur_dirent);
         }
-        sort(filenames);
+        // sort(filenames);
         closedir(dir_ptr);
     }
 
@@ -122,7 +122,11 @@ void do_ls(char *dirname)
         strcat(pathname, "/");
         strcat(pathname, filenames[i]);
         struct stat info;
-        stat(pathname, &info);
+        if (stat(pathname, &info) == -1)
+        {
+            perror("获取信息失败\n");
+            exit(EXIT_FAILURE);
+        }
         if (has_l)
         {
             ls_l(info);
@@ -130,24 +134,24 @@ void do_ls(char *dirname)
     }
 }
 
-void sort(char **filenames)
-{
-    char temp[256];
-    for (int i = 0; i < file_cnt - 1; i++)
-    {
-        for (int j = 0; j < file_cnt - 1 - i; j++)
-        {
-            if (strcmp(filenames[j], filenames[j + 1]) > 0)
-            {
-                strcpy(temp, filenames[j]);
-                strcpy(filenames[j], filenames[j + 1]);
-                strcpy(filenames[j + 1], temp);
-            }
-        }
-    }
-}
+// void sort(char **filenames)
+// {
+//     char temp[256];
+//     for (int i = 0; i < file_cnt - 1; i++)
+//     {
+//         for (int j = 0; j < file_cnt - 1 - i; j++)
+//         {
+//             if (strcmp(filenames[j], filenames[j + 1]) > 0)
+//             {
+//                 strcpy(temp, filenames[j]);
+//                 strcpy(filenames[j], filenames[j + 1]);
+//                 strcpy(filenames[j + 1], temp);
+//             }
+//         }
+//     }
+// }
 
-void mode_to_letters(mode_t num,char *mode) // 将权限转换为字符串
+void mode_to_letters(mode_t num, char *mode) // 将权限转换为字符串
 {
     // 判断文件类型
     switch (num & __S_IFMT)
@@ -196,16 +200,20 @@ void mode_to_letters(mode_t num,char *mode) // 将权限转换为字符串
         mode[9] = 'x';
 
     mode[10] = '\0';
-
 }
 
 void ls_l(struct stat sb)
 {
-    char* mode = (char *)malloc(11);
-    mode_to_letters(sb.st_mode,mode);
+    char *mode = (char *)malloc(11);
+    if (mode == NULL)
+    {
+        perror("内存分配失败\n");
+        exit(EXIT_FAILURE);
+    }
+    mode_to_letters(sb.st_mode, mode);
     printf("%s ", mode);
     free(mode);
-    
+
     printf("%d ", (int)sb.st_nlink); // 打印链接数
 
     struct passwd *user;
