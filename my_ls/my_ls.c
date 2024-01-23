@@ -1,18 +1,17 @@
 #include <stdio.h>
-#include <ctype.h>
-#include <dirent.h>
-#include <fcntl.h>
-#include <grp.h>
-#include <pwd.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <unistd.h>
+#include <pwd.h>
+#include <grp.h>
 
 void restored_name(struct dirent *cur_dirent);
 void do_ls(char *dirname);
-//void sort(char **filenames);
+// void sort(char **filenames);
 void mode_to_letters(mode_t num, char *mode);
 void ls_l(struct stat sb);
 
@@ -127,10 +126,16 @@ void do_ls(char *dirname)
             perror("获取信息失败\n");
             exit(EXIT_FAILURE);
         }
+
+        if (has_i)
+            printf("%8lu ", info.st_ino);
+        if (has_s)
+            printf("%ld ", (long)info.st_size);
         if (has_l)
-        {
             ls_l(info);
-        }
+
+        color_print(filenames[i], info.st_mode);
+        printf("\n");
     }
 }
 
@@ -140,7 +145,7 @@ void do_ls(char *dirname)
 //     for (int i = 0; i < file_cnt - 1; i++)
 //     {
 //         for (int j = 0; j < file_cnt - 1 - i; j++)
-//         {
+//         {-i
 //             if (strcmp(filenames[j], filenames[j + 1]) > 0)
 //             {
 //                 strcpy(temp, filenames[j]);
@@ -179,7 +184,7 @@ void mode_to_letters(mode_t num, char *mode) // 将权限转换为字符串
         break;
     }
 
-    // 权限
+    // 权限-i
     if (num & S_IRUSR)
         mode[1] = 'r';
     if (num & S_IWUSR)
@@ -227,6 +232,27 @@ void ls_l(struct stat sb)
     printf("%ld ", sb.st_size); // 打印文件大小
 
     struct tm *t;
-    t = localtime((const long int *)sb.st_mtime);
-    printf("%2d月 %2d %02d:%02d", t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min); // 打印时间
+    t = ctime((const long int *)sb.st_mtime);
+    printf("%2d月 %2d %02d:%02d ", t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min); // 打印时间
+}
+
+void color_print(char *filename, mode_t filemode) //染色文件名
+{
+    if (S_ISDIR(filemode))
+        printf("\033[01;34m%s\033[0m", filename);
+    else if (S_ISCHR(filemode))
+        printf("\033[40;33m%s\033[0m", filename);
+    else if (S_ISBLK(filemode))
+        printf("\033[40;33m%s\033[0m", filename);
+    else if (S_ISLNK(filemode))
+        printf("\033[01;36m%s\033[0m", filename);
+    else if (S_ISREG(filemode))
+    {
+        if(filemode & S_IXUSR || filemode & S_IXGRP || filemode & S_IXOTH)
+            printf("\033[01;32m%s\033[0m",filename);
+        else
+            printf("%s", filename);
+    }
+    else
+        printf("%s", filename);
 }

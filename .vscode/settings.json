@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "locale.h": "c",
+        "stat.h": "c",
+        "types.h": "c",
+        "struct_timespec.h": "c",
+        "grp.h": "c",
+        "pwd.h": "c",
+        "fcntl.h": "c",
+        "termios.h": "c",
+        "unistd.h": "c"
+    }
+}
