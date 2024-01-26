@@ -14,6 +14,7 @@ void do_ls(char *dirname);
 // void sort(char **filenames);
 void mode_to_letters(mode_t num, char *mode);
 void ls_l(struct stat sb);
+void color_print(char *filename, mode_t filemode);
 
 // struct info_mold{
 //     char pathname[256];
@@ -128,9 +129,9 @@ void do_ls(char *dirname)
         }
 
         if (has_i)
-            printf("%8lu ", info.st_ino);
+            printf("%-8lu ", info.st_ino);
         if (has_s)
-            printf("%ld ", (long)info.st_size);
+            printf("%-8ld ", (long)info.st_size);
         if (has_l)
             ls_l(info);
 
@@ -156,8 +157,9 @@ void do_ls(char *dirname)
 //     }
 // }
 
-void mode_to_letters(mode_t num, char *mode) // 将权限转换为字符串
+void mode_to_letters(mode_t num, char* mode) // 将权限转换为字符串
 {
+    strcpy(mode,"----------");
     // 判断文件类型
     switch (num & __S_IFMT)
     {
@@ -209,15 +211,9 @@ void mode_to_letters(mode_t num, char *mode) // 将权限转换为字符串
 
 void ls_l(struct stat sb)
 {
-    char *mode = (char *)malloc(11);
-    if (mode == NULL)
-    {
-        perror("内存分配失败\n");
-        exit(EXIT_FAILURE);
-    }
+    char mode[11];
     mode_to_letters(sb.st_mode, mode);
     printf("%s ", mode);
-    free(mode);
 
     printf("%d ", (int)sb.st_nlink); // 打印链接数
 
@@ -232,7 +228,7 @@ void ls_l(struct stat sb)
     printf("%ld ", sb.st_size); // 打印文件大小
 
     struct tm *t;
-    t = ctime((const long int *)sb.st_mtime);
+    t = localtime((const long int *)sb.st_mtime);
     printf("%2d月 %2d %02d:%02d ", t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min); // 打印时间
 }
 
