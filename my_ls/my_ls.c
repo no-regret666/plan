@@ -79,6 +79,7 @@ int main(int argc, char **argv)
         if (argv[i][0] != '-')
         {
             flag = 1;
+            printf("%s:\n",argv[i]);
             do_ls(argv[i]);
         }
     }
@@ -214,7 +215,7 @@ void ls_l(struct stat sb)
     char mode[11];
     mode_to_letters(sb.st_mode, mode);
     printf("%s ", mode);
-
+    
     printf("%d ", (int)sb.st_nlink); // 打印链接数
 
     struct passwd *user;
@@ -225,11 +226,8 @@ void ls_l(struct stat sb)
     gp = getgrgid(sb.st_gid);
     printf("%s ", gp->gr_name); // 打印组名
 
-    printf("%ld ", sb.st_size); // 打印文件大小
-
-    struct tm *t;
-    t = localtime((const long int *)sb.st_mtime);
-    printf("%2d月 %2d %02d:%02d ", t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min); // 打印时间
+    printf("%-8ld ", sb.st_size); // 打印文件大小
+    printf("%.12s ",ctime(&sb.st_mtime) + 4); // 打印时间
 }
 
 void color_print(char *filename, mode_t filemode) //染色文件名
