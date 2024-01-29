@@ -11,19 +11,20 @@
 
 void restored_name(struct dirent *cur_dirent);
 void do_ls(char *dirname);
-// void sort(char **filenames);
 void mode_to_letters(mode_t num, char *mode);
 void ls_l(struct stat sb);
 void color_print(char *filename, mode_t filemode);
-
-// struct info_mold{
-//     char pathname[256];
-//     struct stat;
-// }; //存储每个文件的信息
+int compare(const void *a, const void *b);
+int compare_t(const void *a, const void *b);
 
 // 全局变量
-char *filenames[4096];
+typedef struct
+{
+    char *filename;
+    struct stat info;
+} Fileinfo;
 int file_cnt = 0;
+Fileinfo fileinfo[4096];
 
 int has_a = 0;
 int has_l = 0;
@@ -79,7 +80,7 @@ int main(int argc, char **argv)
         if (argv[i][0] != '-')
         {
             flag = 1;
-            printf("%s:\n",argv[i]);
+            printf("%s:\n", argv[i]);
             do_ls(argv[i]);
         }
     }
@@ -93,7 +94,7 @@ void restored_name(struct dirent *cur_dirent)
 {
     if (!has_a && *(cur_dirent->d_name) == '.')
         return;
-    filenames[file_cnt++] = cur_dirent->d_name;
+    fileinfo[file_cnt++].filename = cur_dirent->d_name;
 }
 
 void do_ls(char *dirname)
@@ -111,56 +112,70 @@ void do_ls(char *dirname)
         {
             restored_name(cur_dirent);
         }
-        // sort(filenames);
         closedir(dir_ptr);
     }
 
-    // 存储信息，根据参数打印信息
+    // 存储信息
     for (int i = 0; i < file_cnt; i++)
     {
         char pathname[256];
         strcpy(pathname, dirname);
         strcat(pathname, "/");
-        strcat(pathname, filenames[i]);
-        struct stat info;
-        if (stat(pathname, &info) == -1)
+        strcat(pathname, fileinfo[i].filename);
+        if (stat(pathname, &fileinfo[i].info) == -1)
         {
             perror("获取信息失败\n");
             exit(EXIT_FAILURE);
         }
+    }
 
+    //排序
+    qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare);
+    if (has_t)
+        qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare_t);
+    if (has_r)
+    {
+        int left = 0, right = file_cnt - 1;
+        while (left < right)
+        {
+            Fileinfo temp = fileinfo[left];
+            fileinfo[left++] = fileinfo[right];
+            fileinfo[right--] = temp;
+        }
+    }
+
+    // 打印信息
+    for (int i = 0; i < file_cnt; i++)
+    {
         if (has_i)
-            printf("%-8lu ", info.st_ino);
+            printf("%-8lu ", fileinfo[i].info.st_ino);
         if (has_s)
-            printf("%-8ld ", (long)info.st_size);
+            printf("%-8ld ", (long)fileinfo[i].info.st_size);
         if (has_l)
-            ls_l(info);
+            ls_l(fileinfo[i].info);
 
-        color_print(filenames[i], info.st_mode);
+        color_print(fileinfo[i].filename, fileinfo[i].info.st_mode);
         printf("\n");
     }
 }
 
-// void sort(char **filenames)
-// {
-//     char temp[256];
-//     for (int i = 0; i < file_cnt - 1; i++)
-//     {
-//         for (int j = 0; j < file_cnt - 1 - i; j++)
-//         {-i
-//             if (strcmp(filenames[j], filenames[j + 1]) > 0)
-//             {
-//                 strcpy(temp, filenames[j]);
-//                 strcpy(filenames[j], filenames[j + 1]);
-//                 strcpy(filenames[j + 1], temp);
-//             }
-//         }
-//     }
-// }
-
-void mode_to_letters(mode_t num, char* mode) // 将权限转换为字符串
+int compare(const void *a, const void *b)
 {
-    strcpy(mode,"----------");
+    Fileinfo *_a = (Fileinfo *)a;
+    Fileinfo *_b = (Fileinfo *)b;
+    return strcmp(_a->filename, _b->filename);
+}
+
+int compare_t(const void *a, const void *b)
+{
+    Fileinfo *_a = (Fileinfo *)a;
+    Fileinfo *_b = (Fileinfo *)b;
+    return _a->info.st_mtime < _b->info.st_mtime;
+}
+
+void mode_to_letters(mode_t num, char *mode) // 将权限转换为字符串
+{
+    strcpy(mode, "----------");
     // 判断文件类型
     switch (num & __S_IFMT)
     {
@@ -215,7 +230,7 @@ void ls_l(struct stat sb)
     char mode[11];
     mode_to_letters(sb.st_mode, mode);
     printf("%s ", mode);
-    
+
     printf("%d ", (int)sb.st_nlink); // 打印链接数
 
     struct passwd *user;
@@ -226,11 +241,11 @@ void ls_l(struct stat sb)
     gp = getgrgid(sb.st_gid);
     printf("%s ", gp->gr_name); // 打印组名
 
-    printf("%-8ld ", sb.st_size); // 打印文件大小
-    printf("%.12s ",ctime(&sb.st_mtime) + 4); // 打印时间
+    printf("%-8ld ", sb.st_size);              // 打印文件大小
+    printf("%.12s ", ctime(&sb.st_mtime) + 4); // 打印时间
 }
 
-void color_print(char *filename, mode_t filemode) //染色文件名
+void color_print(char *filename, mode_t filemode) // 染色文件名
 {
     if (S_ISDIR(filemode))
         printf("\033[01;34m%s\033[0m", filename);
@@ -242,8 +257,8 @@ void color_print(char *filename, mode_t filemode) //染色文件名
         printf("\033[01;36m%s\033[0m", filename);
     else if (S_ISREG(filemode))
     {
-        if(filemode & S_IXUSR || filemode & S_IXGRP || filemode & S_IXOTH)
-            printf("\033[01;32m%s\033[0m",filename);
+        if (filemode & S_IXUSR || filemode & S_IXGRP || filemode & S_IXOTH)
+            printf("\033[01;32m%s\033[0m", filename);
         else
             printf("%s", filename);
     }
