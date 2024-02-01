@@ -23,7 +23,7 @@ typedef struct
     char *filename;
     struct stat info;
 } Fileinfo;
-int file_cnt = 0;
+int file_cnt;
 Fileinfo fileinfo[4096];
 
 int has_a = 0;
@@ -129,7 +129,7 @@ void do_ls(char *dirname)
         }
     }
 
-    //排序
+    // 排序
     qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare);
     if (has_t)
         qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare_t);
@@ -156,6 +156,21 @@ void do_ls(char *dirname)
 
         color_print(fileinfo[i].filename, fileinfo[i].info.st_mode);
         printf("\n");
+    }
+    if (has_R)
+    {
+        for (int i = 0; i < file_cnt; i++)
+        {
+            if (S_ISDIR(fileinfo[i].info.st_mode))
+            {
+                char pathname[256];
+                strcpy(pathname, dirname);
+                strcat(pathname, "/");
+                strcat(pathname, fileinfo[i].filename);
+                printf("\n%s:\n", pathname);
+                //ls_R(pathname, &file_cnt);
+            }
+        }
     }
 }
 
@@ -231,7 +246,7 @@ void ls_l(struct stat sb)
     mode_to_letters(sb.st_mode, mode);
     printf("%s ", mode);
 
-    printf("%d ", (int)sb.st_nlink); // 打印链接数
+    printf("%-2d ", (int)sb.st_nlink); // 打印链接数
 
     struct passwd *user;
     user = getpwuid(sb.st_uid);
@@ -265,3 +280,8 @@ void color_print(char *filename, mode_t filemode) // 染色文件名
     else
         printf("%s", filename);
 }
+
+// void ls_R(char *dirname,int *file_count)
+// {
+
+// }
