@@ -9,22 +9,19 @@
 #include <pwd.h>
 #include <grp.h>
 
-void restored_name(struct dirent *cur_dirent);
-void do_ls(char *dirname);
-void mode_to_letters(mode_t num, char *mode);
-void ls_l(struct stat sb);
-void color_print(char *filename, mode_t filemode);
-int compare(const void *a, const void *b);
-int compare_t(const void *a, const void *b);
-
-// 全局变量
 typedef struct
 {
     char *filename;
     struct stat info;
 } Fileinfo;
-int file_cnt;
-Fileinfo fileinfo[4096];
+
+void do_ls(char *dirname);
+void mode_to_letters(mode_t num, char *mode);
+void ls_l(struct stat sb);
+void print_filename(char *filename, mode_t filemode);
+int compare(const void *a, const void *b);
+int compare_t(const void *a, const void *b);
+void ls_R(char *dirname);
 
 int has_a = 0;
 int has_l = 0;
@@ -90,15 +87,10 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void restored_name(struct dirent *cur_dirent)
-{
-    if (!has_a && *(cur_dirent->d_name) == '.')
-        return;
-    fileinfo[file_cnt++].filename = cur_dirent->d_name;
-}
-
 void do_ls(char *dirname)
 {
+    Fileinfo fileinfo[4096];
+    int file_cnt = 0;
     DIR *dir_ptr;
     struct dirent *cur_dirent;
     if ((dir_ptr = opendir(dirname)) == NULL)
@@ -110,7 +102,9 @@ void do_ls(char *dirname)
     {
         while ((cur_dirent = readdir(dir_ptr)) != NULL)
         {
-            restored_name(cur_dirent);
+            if (!has_a && *(cur_dirent->d_name) == '.')
+                continue;
+            fileinfo[file_cnt++].filename = cur_dirent->d_name;
         }
         closedir(dir_ptr);
     }
@@ -130,9 +124,10 @@ void do_ls(char *dirname)
     }
 
     // 排序
-    qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare);
     if (has_t)
         qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare_t);
+    else
+        qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare);
     if (has_r)
     {
         int left = 0, right = file_cnt - 1;
@@ -154,7 +149,7 @@ void do_ls(char *dirname)
         if (has_l)
             ls_l(fileinfo[i].info);
 
-        color_print(fileinfo[i].filename, fileinfo[i].info.st_mode);
+        print_filename(fileinfo[i].filename, fileinfo[i].info.st_mode);
         printf("\n");
     }
     if (has_R)
@@ -168,7 +163,7 @@ void do_ls(char *dirname)
                 strcat(pathname, "/");
                 strcat(pathname, fileinfo[i].filename);
                 printf("\n%s:\n", pathname);
-                //ls_R(pathname, &file_cnt);
+                ls_R(pathname);
             }
         }
     }
@@ -256,11 +251,11 @@ void ls_l(struct stat sb)
     gp = getgrgid(sb.st_gid);
     printf("%s ", gp->gr_name); // 打印组名
 
-    printf("%-8ld ", sb.st_size);              // 打印文件大小
+    printf("%-10ld ", sb.st_size);             // 打印文件大小
     printf("%.12s ", ctime(&sb.st_mtime) + 4); // 打印时间
 }
 
-void color_print(char *filename, mode_t filemode) // 染色文件名
+void print_filename(char *filename, mode_t filemode) // 染色文件名
 {
     if (S_ISDIR(filemode))
         printf("\033[01;34m%s\033[0m", filename);
@@ -281,7 +276,7 @@ void color_print(char *filename, mode_t filemode) // 染色文件名
         printf("%s", filename);
 }
 
-// void ls_R(char *dirname,int *file_count)
-// {
-
-// }
+void ls_R(char *dirname)
+{
+    
+}
