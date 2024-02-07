@@ -17,7 +17,7 @@ typedef struct
 
 void do_ls(char *dirname);
 void mode_to_letters(mode_t num, char *mode);
-void ls_l(struct stat sb);
+void print_fileinfo(Fileinfo fileinfo);
 void print_filename(char *filename, mode_t filemode);
 int compare(const void *a, const void *b);
 int compare_t(const void *a, const void *b);
@@ -106,7 +106,6 @@ void do_ls(char *dirname)
                 continue;
             fileinfo[file_cnt++].filename = cur_dirent->d_name;
         }
-        closedir(dir_ptr);
     }
 
     // 存储信息
@@ -142,15 +141,7 @@ void do_ls(char *dirname)
     // 打印信息
     for (int i = 0; i < file_cnt; i++)
     {
-        if (has_i)
-            printf("%-8lu ", fileinfo[i].info.st_ino);
-        if (has_s)
-            printf("%-8ld ", (long)fileinfo[i].info.st_size);
-        if (has_l)
-            ls_l(fileinfo[i].info);
-
-        print_filename(fileinfo[i].filename, fileinfo[i].info.st_mode);
-        printf("\n");
+        print_fileinfo(fileinfo[i]);
     }
     if (has_R)
     {
@@ -163,10 +154,11 @@ void do_ls(char *dirname)
                 strcat(pathname, "/");
                 strcat(pathname, fileinfo[i].filename);
                 printf("\n%s:\n", pathname);
-                ls_R(pathname);
+                do_ls(pathname);
             }
         }
     }
+    closedir(dir_ptr);
 }
 
 int compare(const void *a, const void *b)
@@ -235,24 +227,34 @@ void mode_to_letters(mode_t num, char *mode) // 将权限转换为字符串
     mode[10] = '\0';
 }
 
-void ls_l(struct stat sb)
+void print_fileinfo(const Fileinfo fileinfo)
 {
-    char mode[11];
-    mode_to_letters(sb.st_mode, mode);
-    printf("%s ", mode);
+    if (has_i)
+        printf("%-8lu ", fileinfo.info.st_ino);
+    if (has_s)
+        printf("%-8ld ", (long)fileinfo.info.st_size);
+    if (has_l)
+    {
+        char mode[11];
+        mode_to_letters(fileinfo.info.st_mode, mode);
+        printf("%s ", mode);
 
-    printf("%-2d ", (int)sb.st_nlink); // 打印链接数
+        printf("%-2d ", (int)fileinfo.info.st_nlink); // 打印链接数
 
-    struct passwd *user;
-    user = getpwuid(sb.st_uid);
-    printf("%s ", user->pw_name); // 打印用户名
+        struct passwd *user;
+        user = getpwuid(fileinfo.info.st_uid);
+        printf("%s ", user->pw_name); // 打印用户名
 
-    struct group *gp;
-    gp = getgrgid(sb.st_gid);
-    printf("%s ", gp->gr_name); // 打印组名
+        struct group *gp;
+        gp = getgrgid(fileinfo.info.st_gid);
+        printf("%s ", gp->gr_name); // 打印组名
 
-    printf("%-10ld ", sb.st_size);             // 打印文件大小
-    printf("%.12s ", ctime(&sb.st_mtime) + 4); // 打印时间
+        printf("%-10ld ", fileinfo.info.st_size);             // 打印文件大小
+        printf("%.12s ", ctime(&fileinfo.info.st_mtime) + 4); // 打印时间
+    }
+
+    print_filename(fileinfo.filename, fileinfo.info.st_mode);
+    printf("\n");
 }
 
 void print_filename(char *filename, mode_t filemode) // 染色文件名
@@ -276,7 +278,6 @@ void print_filename(char *filename, mode_t filemode) // 染色文件名
         printf("%s", filename);
 }
 
-void ls_R(char *dirname)
-{
-    
-}
+// void ls_R(char *dirname)
+// {
+// }
