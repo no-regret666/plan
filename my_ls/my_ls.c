@@ -95,7 +95,7 @@ void do_ls(char *dirname)
     struct dirent *cur_dirent;
     if ((dir_ptr = opendir(dirname)) == NULL)
     {
-        fprintf(stderr, "无法打开%s\n", dirname);
+        perror("打开文件夹失败");
         exit(EXIT_FAILURE);
     }
     else
@@ -115,9 +115,9 @@ void do_ls(char *dirname)
         strcpy(pathname, dirname);
         strcat(pathname, "/");
         strcat(pathname, fileinfo[i].filename);
-        if (stat(pathname, &fileinfo[i].info) == -1)
+        if (lstat(pathname, &fileinfo[i].info) == -1)
         {
-            perror("获取信息失败\n");
+            perror("获取信息失败");
             exit(EXIT_FAILURE);
         }
     }
@@ -149,6 +149,8 @@ void do_ls(char *dirname)
         {
             if (S_ISDIR(fileinfo[i].info.st_mode))
             {
+                if (!strcmp(fileinfo[i].filename, ".") || !strcmp(fileinfo[i].filename, ".."))
+                    continue;
                 char pathname[256];
                 strcpy(pathname, dirname);
                 strcat(pathname, "/");
@@ -277,7 +279,3 @@ void print_filename(char *filename, mode_t filemode) // 染色文件名
     else
         printf("%s", filename);
 }
-
-// void ls_R(char *dirname)
-// {
-// }
