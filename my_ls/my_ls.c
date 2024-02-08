@@ -268,7 +268,7 @@ void print_filename(char *filename, mode_t filemode) // 染色文件名
     else if (S_ISBLK(filemode))
         printf("\033[40;33m%s\033[0m", filename);
     else if (S_ISLNK(filemode))
-        printf("\033[01;36m%s\033[0m", filename);
+        printf("\033[30;42m%s\033[0m", filename);
     else if (S_ISREG(filemode))
     {
         if (filemode & S_IXUSR || filemode & S_IXGRP || filemode & S_IXOTH)
