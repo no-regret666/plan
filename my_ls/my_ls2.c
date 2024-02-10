@@ -188,14 +188,15 @@ void do_ls(char *dirname)
             {
                 if (S_ISDIR(fileinfo[i].info.st_mode))
                 {
-                    if (!strcmp(fileinfo[i].filename, ".") || !strcmp(fileinfo[i].filename, ".."))
-                        continue;
-                    char pathname[256];
-                    strcpy(pathname, dirname);
-                    strcat(pathname, "/");
-                    strcat(pathname, fileinfo[i].filename);
-                    printf("\n%s:\n", pathname);
-                    do_ls(pathname);
+                    if (strcmp(fileinfo[i].filename, ".") || strcmp(fileinfo[i].filename, ".."))
+                    {
+                        char pathname[256];
+                        strcpy(pathname, dirname);
+                        strcat(pathname, "/");
+                        strcat(pathname, fileinfo[i].filename);
+                        printf("\n%s:\n", pathname);
+                        do_ls(pathname);
+                    }
                 }
             }
         }
