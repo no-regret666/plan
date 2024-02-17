@@ -21,7 +21,6 @@ void print_fileinfo(Fileinfo fileinfo);
 void print_filename(char *filename, mode_t filemode);
 int compare(const void *a, const void *b);
 int compare_t(const void *a, const void *b);
-void ls_R(char *dirname);
 
 int has_a = 0;
 int has_l = 0;
