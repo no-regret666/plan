@@ -9,9 +9,12 @@
 #include <pwd.h>
 #include <grp.h>
 
+#define MAX_PATH 1024
+
 typedef struct
 {
     char *filename;
+    char targetpath[MAX_PATH];
     struct stat info;
 } Fileinfo;
 
@@ -21,6 +24,7 @@ void print_fileinfo(Fileinfo fileinfo);
 void print_filename(char *filename, mode_t filemode);
 int compare(const void *a, const void *b);
 int compare_t(const void *a, const void *b);
+void ls_R(char *dirname);
 
 int has_a = 0;
 int has_l = 0;
@@ -88,78 +92,115 @@ int main(int argc, char **argv)
 
 void do_ls(char *dirname)
 {
-    Fileinfo fileinfo[4096];
-    int file_cnt = 0;
-    DIR *dir_ptr;
-    struct dirent *cur_dirent;
-    if ((dir_ptr = opendir(dirname)) == NULL)
+    // 先判断是否是链接文件，若是，获取链接的目标路径
+    struct stat st;
+    if (lstat(dirname, &st) == -1)
     {
-        perror("打开文件夹失败");
+        perror("获取信息失败");
         exit(EXIT_FAILURE);
     }
-    else
+    Fileinfo dirinfo;
+    dirinfo.filename = dirname;
+    dirinfo.info = st;
+    if (S_ISLNK(st.st_mode))
     {
-        while ((cur_dirent = readdir(dir_ptr)) != NULL)
+        ssize_t pathsize = readlink(dirname, dirinfo.targetpath, MAX_PATH - 1);
+        if (pathsize == -1)
         {
-            if (!has_a && *(cur_dirent->d_name) == '.')
-                continue;
-            fileinfo[file_cnt++].filename = cur_dirent->d_name;
-        }
-    }
-
-    // 存储信息
-    for (int i = 0; i < file_cnt; i++)
-    {
-        char pathname[256];
-        strcpy(pathname, dirname);
-        strcat(pathname, "/");
-        strcat(pathname, fileinfo[i].filename);
-        if (lstat(pathname, &fileinfo[i].info) == -1)
-        {
-            perror("获取信息失败");
+            perror("读取链接文件失败");
             exit(EXIT_FAILURE);
         }
-    }
+        else
+            dirinfo.targetpath[pathsize] = '\0';
 
-    // 排序
-    if (has_t)
-        qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare_t);
+        print_fileinfo(dirinfo);
+    }
     else
-        qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare);
-    if (has_r)
     {
-        int left = 0, right = file_cnt - 1;
-        while (left < right)
+        Fileinfo fileinfo[4096];
+        int file_cnt = 0;
+        DIR *dir_ptr;
+        struct dirent *cur_dirent;
+        if ((dir_ptr = opendir(dirname)) == NULL)
         {
-            Fileinfo temp = fileinfo[left];
-            fileinfo[left++] = fileinfo[right];
-            fileinfo[right--] = temp;
+            perror("打开文件夹失败");
+            exit(EXIT_FAILURE);
         }
-    }
-
-    // 打印信息
-    for (int i = 0; i < file_cnt; i++)
-    {
-        print_fileinfo(fileinfo[i]);
-    }
-    if (has_R)
-    {
-        for (int i = 0; i < file_cnt; i++)
+        else
         {
-            if (S_ISDIR(fileinfo[i].info.st_mode))
+            while ((cur_dirent = readdir(dir_ptr)) != NULL)
             {
-                if (!strcmp(fileinfo[i].filename, ".") || !strcmp(fileinfo[i].filename, ".."))
+                if (!has_a && *(cur_dirent->d_name) == '.')
                     continue;
-                char pathname[256];
-                strcpy(pathname, dirname);
-                strcat(pathname, "/");
-                strcat(pathname, fileinfo[i].filename);
-                printf("\n%s:\n", pathname);
-                do_ls(pathname);
+                fileinfo[file_cnt++].filename = cur_dirent->d_name;
             }
         }
+
+        // 存储信息
+        for (int i = 0; i < file_cnt; i++)
+        {
+            char pathname[256];
+            strcpy(pathname, dirname);
+            strcat(pathname, "/");
+            strcat(pathname, fileinfo[i].filename);
+            if (lstat(pathname, &fileinfo[i].info) == -1)
+            {
+                perror("获取信息失败");
+                exit(EXIT_FAILURE);
+            }
+            if (S_ISLNK(fileinfo[i].info.st_mode))
+            {
+                ssize_t pathsize = readlink(pathname, fileinfo[i].targetpath, MAX_PATH - 1);
+                if (pathsize == -1)
+                {
+                    perror("读取链接文件失败");
+                    exit(EXIT_FAILURE);
+                }
+                else
+                    fileinfo[i].targetpath[pathsize] = '\0';
+            }
+        }
+
+        // 排序
+        if (has_t)
+            qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare_t);
+        else
+            qsort(fileinfo, file_cnt, sizeof(Fileinfo), compare);
+        if (has_r)
+        {
+            int left = 0, right = file_cnt - 1;
+            while (left < right)
+            {
+                Fileinfo temp = fileinfo[left];
+                fileinfo[left++] = fileinfo[right];
+                fileinfo[right--] = temp;
+            }
+        }
+
+        // 打印信息
+        for (int i = 0; i < file_cnt; i++)
+        {
+            print_fileinfo(fileinfo[i]);
+        }
+        if (has_R)
+        {
+            for (int i = 0; i < file_cnt; i++)
+            {
+                if (S_ISDIR(fileinfo[i].info.st_mode))
+                {
+                    if (!strcmp(fileinfo[i].filename, ".") || !strcmp(fileinfo[i].filename, ".."))
+                        continue;
+                    char pathname[256];
+                    strcpy(pathname, dirname);
+                    strcat(pathname, "/");
+                    strcat(pathname, fileinfo[i].filename);
+                    printf("\n%s:\n", pathname);
+                    do_ls(pathname);
+                }
+            }
+        }
+        closedir(dir_ptr);
     }
-    closedir(dir_ptr);
 }
 
 int compare(const void *a, const void *b)
@@ -255,6 +296,8 @@ void print_fileinfo(const Fileinfo fileinfo)
     }
 
     print_filename(fileinfo.filename, fileinfo.info.st_mode);
+    if (S_ISLNK(fileinfo.info.st_mode) && has_l)
+        printf(" -> %s", fileinfo.targetpath);
     printf("\n");
 }
 
