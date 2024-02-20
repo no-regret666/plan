@@ -8,6 +8,7 @@
 #include <time.h>
 #include <pwd.h>
 #include <grp.h>
+#include <stdbool.h>
 
 typedef struct
 {
@@ -15,6 +16,7 @@ typedef struct
     struct stat info;
 } Fileinfo;
 
+// 函数声明
 void do_ls(char *dirname);
 void mode_to_letters(mode_t num, char *mode);
 void print_fileinfo(Fileinfo fileinfo);
@@ -22,13 +24,13 @@ void print_filename(char *filename, mode_t filemode);
 int compare(const void *a, const void *b);
 int compare_t(const void *a, const void *b);
 
-int has_a = 0;
-int has_l = 0;
-int has_R = 0;
-int has_t = 0;
-int has_r = 0;
-int has_i = 0;
-int has_s = 0; // 初始化参数
+bool has_a = false;
+bool has_l = false;
+bool has_R = false;
+bool has_t = false;
+bool has_r = false;
+bool has_i = false;
+bool has_s = false;
 
 int main(int argc, char **argv)
 {
@@ -42,25 +44,25 @@ int main(int argc, char **argv)
                 switch (argv[i][j])
                 {
                 case 'a':
-                    has_a = 1;
+                    has_a = true;
                     break;
                 case 'l':
-                    has_l = 1;
+                    has_l = true;
                     break;
                 case 'R':
-                    has_R = 1;
+                    has_R = true;
                     break;
                 case 't':
-                    has_t = 1;
+                    has_t = true;
                     break;
                 case 'r':
-                    has_r = 1;
+                    has_r = true;
                     break;
                 case 'i':
-                    has_i = 1;
+                    has_i = true;
                     break;
                 case 's':
-                    has_s = 1;
+                    has_s = true;
                     break;
                 default:
                     printf("ls:不适用的选项\n请尝试执行 \"ls --help\" 来获取更多信息\n");
@@ -89,7 +91,14 @@ int main(int argc, char **argv)
 
 void do_ls(char *dirname)
 {
-    Fileinfo fileinfo[4096];
+    // 动态分配内存
+    Fileinfo *fileinfo = malloc(sizeof(Fileinfo) * 10000);
+    if (fileinfo == NULL)
+    {
+        perror("内存分配失败");
+        exit(EXIT_FAILURE);
+    }
+
     int file_cnt = 0;
     DIR *dir_ptr;
     struct dirent *cur_dirent;
@@ -102,19 +111,17 @@ void do_ls(char *dirname)
     {
         while ((cur_dirent = readdir(dir_ptr)) != NULL)
         {
-            if (!has_a && *(cur_dirent->d_name) == '.')
+            if (!has_a && cur_dirent->d_name[0] == '.')
                 continue;
-            fileinfo[file_cnt++].filename = cur_dirent->d_name;
+            fileinfo[file_cnt++].filename = strdup(cur_dirent->d_name); // 使用 strdup 分配内存
         }
     }
 
     // 存储信息
     for (int i = 0; i < file_cnt; i++)
     {
-        char pathname[256];
-        strcpy(pathname, dirname);
-        strcat(pathname, "/");
-        strcat(pathname, fileinfo[i].filename);
+        char pathname[1000];
+        snprintf(pathname, sizeof(pathname), "%s/%s", dirname, fileinfo[i].filename); // 使用 snprintf 避免缓冲区溢出
         if (lstat(pathname, &fileinfo[i].info) == -1)
         {
             perror("获取信息失败");
@@ -149,18 +156,22 @@ void do_ls(char *dirname)
         {
             if (S_ISDIR(fileinfo[i].info.st_mode))
             {
-                if (!strcmp(fileinfo[i].filename, ".") || !strcmp(fileinfo[i].filename, ".."))
-                    continue;
-                char pathname[256];
-                strcpy(pathname, dirname);
-                strcat(pathname, "/");
-                strcat(pathname, fileinfo[i].filename);
-                printf("\n%s:\n", pathname);
-                do_ls(pathname);
+                if (strcmp(fileinfo[i].filename, ".") != 0 && strcmp(fileinfo[i].filename, "..") != 0)
+                {
+                    char pathname[1000];
+                    snprintf(pathname, sizeof(pathname), "%s/%s", dirname, fileinfo[i].filename);
+                    printf("\n%s:\n", pathname);
+                    do_ls(pathname);
+                }
             }
         }
     }
     closedir(dir_ptr);
+
+    // 释放内存
+    for (int i = 0; i < file_cnt; ++i)
+        free(fileinfo[i].filename);
+    free(fileinfo);
 }
 
 int compare(const void *a, const void *b)
@@ -174,39 +185,36 @@ int compare_t(const void *a, const void *b)
 {
     Fileinfo *_a = (Fileinfo *)a;
     Fileinfo *_b = (Fileinfo *)b;
-    return _a->info.st_mtime < _b->info.st_mtime;
+    return _a->info.st_mtime - _b->info.st_mtime;
 }
 
-void mode_to_letters(mode_t num, char *mode) // 将权限转换为字符串
+void mode_to_letters(mode_t num, char *mode)
 {
     strcpy(mode, "----------");
-    // 判断文件类型
     switch (num & __S_IFMT)
     {
-    case __S_IFREG: /* Regular file.  */
+    case __S_IFREG:
         mode[0] = '-';
         break;
-    case __S_IFDIR: /* Directory.  */
+    case __S_IFDIR:
         mode[0] = 'd';
         break;
-    case __S_IFCHR: /* Character device.  */
+    case __S_IFCHR:
         mode[0] = 'c';
         break;
-    case __S_IFBLK: /* Block device.  */
+    case __S_IFBLK:
         mode[0] = 'b';
         break;
-    case __S_IFIFO: /* FIFO.  */
+    case __S_IFIFO:
         mode[0] = 'p';
         break;
-    case __S_IFSOCK: /* Socket.  */
+    case __S_IFSOCK:
         mode[0] = 's';
         break;
-    case __S_IFLNK: /* Symbolic link.  */
+    case __S_IFLNK:
         mode[0] = 'l';
         break;
     }
-
-    // 权限-i
     if (num & S_IRUSR)
         mode[1] = 'r';
     if (num & S_IWUSR)
@@ -225,7 +233,6 @@ void mode_to_letters(mode_t num, char *mode) // 将权限转换为字符串
         mode[8] = 'w';
     if (num & S_IXOTH)
         mode[9] = 'x';
-
     mode[10] = '\0';
 }
 
@@ -243,23 +250,21 @@ void print_fileinfo(const Fileinfo fileinfo)
 
         printf("%-2d ", (int)fileinfo.info.st_nlink); // 打印链接数
 
-        struct passwd *user;
-        user = getpwuid(fileinfo.info.st_uid);
+        struct passwd *user = getpwuid(fileinfo.info.st_uid);
         printf("%s ", user->pw_name); // 打印用户名
 
-        struct group *gp;
-        gp = getgrgid(fileinfo.info.st_gid);
+        struct group *gp = getgrgid(fileinfo.info.st_gid);
         printf("%s ", gp->gr_name); // 打印组名
 
-        printf("%-10ld ", fileinfo.info.st_size);             // 打印文件大小
+        printf("%-10ld ", fileinfo.info.st_size); // 打印文件大小
+
         printf("%.12s ", ctime(&fileinfo.info.st_mtime) + 4); // 打印时间
     }
-
     print_filename(fileinfo.filename, fileinfo.info.st_mode);
     printf("\n");
 }
 
-void print_filename(char *filename, mode_t filemode) // 染色文件名
+void print_filename(char *filename, mode_t filemode)
 {
     if (S_ISDIR(filemode))
         printf("\033[01;34m%s\033[0m", filename);
