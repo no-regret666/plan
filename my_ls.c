@@ -113,7 +113,13 @@ void do_ls(char *dirname)
         {
             if (!has_a && cur_dirent->d_name[0] == '.')
                 continue;
-            fileinfo[file_cnt++].filename = strdup(cur_dirent->d_name); // 使用 strdup 分配内存
+            char *pst = strdup(cur_dirent->d_name); // 使用 strdup 分配内存
+            if (pst == NULL)
+            {
+                perror("动态内存分配失败");
+                exit(EXIT_FAILURE);
+            }
+            fileinfo[file_cnt++].filename = pst;
         }
     }
 
@@ -126,6 +132,7 @@ void do_ls(char *dirname)
         {
             perror("获取信息失败");
             exit(EXIT_FAILURE);
+            continue;
         }
     }
 
@@ -166,12 +173,16 @@ void do_ls(char *dirname)
             }
         }
     }
-    closedir(dir_ptr);
 
     // 释放内存
     for (int i = 0; i < file_cnt; ++i)
+    {
         free(fileinfo[i].filename);
+        fileinfo[i].filename = NULL;
+    }
     free(fileinfo);
+
+    closedir(dir_ptr);
 }
 
 int compare(const void *a, const void *b)
