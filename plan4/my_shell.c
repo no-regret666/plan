@@ -9,29 +9,47 @@
 #define MAXARGS 20
 #define ARGLEN 100
 
-char *readcmd(char *pathname);
-void execute(char *arglist[]);
+char *readcmd(void);           // 读取命令行
+void execute(char *arglist[]); // 执行命令
+void my_getcwd(void);          // 获取当前工作目录
+int cd(char *path);
+
+char *formerpath; // 上一次工作目录
+char *pathname;   // 当前工作目录
 
 int main()
 {
-    char *arglist[MAXARGS + 1], *cmdline, *pathname = ".";
-    while ((cmdline = readcmd(pathname)) != NULL)
+    char *arglist[MAXARGS + 1], *cmdline;
+    my_getcwd();
+    while ((cmdline = readcmd()) != NULL)
     {
         arglist[0] = cmdline;
         for (int i = 0; i < MAXARGS; i++)
         {
             arglist[i] = strtok_r(arglist[i], " ", &arglist[i + 1]);
         }
-        if (cmdline != NULL)
-            execute(arglist);
+        if (!strcmp(arglist[0], "cd"))
+        {
+            cd(arglist[1]);
+        }
+        else
+        {
+            if (cmdline != NULL)
+            {
+                execute(arglist);
+            }
+        }
+        pathname = NULL;
+        my_getcwd();
         free(cmdline);
     }
+    free(formerpath);
     return 0;
 }
 
-char *readcmd(char *pathname)
+char *readcmd(void)
 {
-    fprintf(stdout, "noregret@noregret %s $ ", pathname);
+    fprintf(stdout, "noregret@noregret-arch %s $ ", pathname);
     char *buf;
     int bufsize = 0;
     int pos = 0;
@@ -73,5 +91,24 @@ void execute(char *arglist[])
         int child_status;
         if ((wait(&child_status)) == -1)
             perror("wait");
+    }
+}
+
+void my_getcwd()
+{
+    free(pathname);
+    pathname = getcwd(NULL, 0);
+}
+
+int cd(char *path)
+{
+    if (!strcmp(path, "-"))
+        path = formerpath;
+    else
+        formerpath = pathname;
+    if (chdir(path) == -1)
+    {
+        perror("chdir");
+        exit(EXIT_FAILURE);
     }
 }
