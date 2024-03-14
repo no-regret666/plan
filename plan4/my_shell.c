@@ -130,5 +130,6 @@ void print_prompt(char *pathname)
         strcpy(path, "~");
         strcat(path, buf + len);
     } // 将home目录改成~
-    fprintf(stdout, "noregret@noregret-arch %s $ ", path);
+    fprintf(stdout, "\e[40;33m %s \e[0m\e[44;30m %s \e[0m\e[30;37m %s \e[0m",
+    "noregret@noregret-arch",path,"$");
 }
