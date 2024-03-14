@@ -9,19 +9,19 @@
 #define MAXARGS 20
 #define ARGLEN 100
 
-char *readcmd(void);           // 读取命令行
-void execute(char *arglist[]); // 执行命令
-void my_getcwd(void);          // 获取当前工作目录
-int cd(char *path);
+char *readcmd(char *pathname);  // 读取命令行
+char *my_getcwd(); // 获取当前工作目录
+void execute(char *arglist[]);  // 执行命令
+int cd(char *path, char *pathname);
+void print_prompt(char *path);
 
-char *formerpath; // 上一次工作目录
-char *pathname;   // 当前工作目录
+char formerpath[256]; // 上一次工作目录
 
 int main()
 {
-    char *arglist[MAXARGS + 1], *cmdline;
-    my_getcwd();
-    while ((cmdline = readcmd()) != NULL)
+    char *arglist[MAXARGS + 1], *cmdline, pathname[256];
+    strcpy(pathname,my_getcwd());
+    while ((cmdline = readcmd(pathname)) != NULL)
     {
         arglist[0] = cmdline;
         for (int i = 0; i < MAXARGS; i++)
@@ -30,7 +30,7 @@ int main()
         }
         if (!strcmp(arglist[0], "cd"))
         {
-            cd(arglist[1]);
+            cd(arglist[1], pathname);
         }
         else
         {
@@ -39,17 +39,15 @@ int main()
                 execute(arglist);
             }
         }
-        pathname = NULL;
-        my_getcwd();
+        strcpy(pathname,my_getcwd());
         free(cmdline);
     }
-    free(formerpath);
     return 0;
 }
 
-char *readcmd(void)
+char *readcmd(char *pathname)
 {
-    fprintf(stdout, "noregret@noregret-arch %s $ ", pathname);
+    print_prompt(pathname);
     char *buf;
     int bufsize = 0;
     int pos = 0;
@@ -68,6 +66,12 @@ char *readcmd(void)
     if (pos == 0)
         return NULL;
     buf[pos] = '\0';
+    return buf;
+}
+
+char *my_getcwd()
+{
+    char *buf = getcwd(NULL, 0);
     return buf;
 }
 
@@ -94,21 +98,37 @@ void execute(char *arglist[])
     }
 }
 
-void my_getcwd()
+int cd(char *targetpath, char *pathname)
 {
-    free(pathname);
-    pathname = getcwd(NULL, 0);
-}
-
-int cd(char *path)
-{
-    if (!strcmp(path, "-"))
-        path = formerpath;
+    if (!strcmp(targetpath, "-"))
+        targetpath = formerpath;
     else
-        formerpath = pathname;
-    if (chdir(path) == -1)
+        strcpy(formerpath, pathname);
+
+    if(!strncmp(targetpath,"~",1)){
+        char *home = getenv("HOME");
+        char path[256];
+        strcpy(path,home);
+        strcat(path,targetpath + 1);
+        targetpath = path;
+    }
+
+    if (chdir(targetpath) == -1)
     {
         perror("chdir");
-        exit(EXIT_FAILURE);
     }
+}
+
+void print_prompt(char *pathname)
+{
+    char *buf = pathname;
+    char path[256];
+    char *home = getenv("HOME");
+    size_t len = strlen(home);
+    if (!strncmp(buf, home, len))
+    {
+        strcpy(path, "~");
+        strcat(path, buf + len);
+    } // 将home目录改成~
+    fprintf(stdout, "noregret@noregret-arch %s $ ", path);
 }
