@@ -11,16 +11,16 @@
 #include <time.h>
 #include <fcntl.h>
 
-
 #define MAXARGS 50
 #define ARGLEN 100
 
-void set_prompt(char *prompt);        // 获取命令提示符
-void execute(int argc, char *argv[]); // 执行命令
-int cd(char *path, char *pathname);   // cd命令
-void redirect_input(char *input);    // 输入重定向
-void redirect_output(char *output);   // 输出重定向
-void find(int argc, char *argv[]);     // 寻找特殊符号
+void set_prompt(char *prompt);               // 获取命令提示符
+void execute(int argc, char *argv[]);        // 执行命令
+int cd(char *path, char *pathname);          // cd命令
+void redirect_input(char *input);            // 输入重定向
+void redirect_output(char *output, int add); // 输出重定向
+void redirect(int argc, char *argv[]);       // 寻找特殊符号
+void excute_pipe(char *cmdline);
 
 char formerpath[256]; // 上一次工作目录
 
@@ -45,6 +45,12 @@ int main()
         while (argv[argc])
             argc++;
 
+        int pipe_num = 0;
+        for (int i = 0; i < argc; i++)
+        {
+            if (strcmp(argv[i], "|"))
+                pipe_num++;
+        }
         if (argc == 0)
         {
             free(cmdline);
@@ -62,7 +68,12 @@ int main()
             cd(argv[1], pathname);
         }
         else
-            execute(argc, argv);
+        {
+            if (pipe_num == 0)
+                execute(argc, argv);
+            else
+                excute_pipe(cmdline);
+        }
         free(cmdline);
     }
     return 0;
@@ -121,7 +132,7 @@ void execute(int argc, char *argv[])
     // 子进程
     if (pid == 0)
     {
-        find(argc,argv);
+        find(argc, argv);
         execvp(argv[0], argv);
         perror("execvp");
         exit(EXIT_FAILURE);
@@ -153,39 +164,114 @@ int cd(char *targetpath, char *pathname)
 
 void redirect_input(char *input)
 {
-    int fd,newfd;
-    fd = open(input,O_RDONLY);
-    newfd = dup2(fd,0);
-    if(newfd != 0){
-        fprintf(stderr,"Could not open data as fd 0\n");
-        exit(1);
+    int fd, newfd;
+    fd = open(input, O_RDONLY);
+    newfd = dup2(fd, 0);
+    if (newfd != 0)
+    {
+        fprintf(stderr, "Could not open data as fd 0\n");
+        exit(EXIT_FAILURE);
     }
 }
 
-void redirect_output(char *output)
+void redirect_output(char *output, int add)
 {
-    int fd,newfd;
-    fd = open(output,O_WRONLY | O_CREAT | O_TRUNC);
-    newfd = dup2(fd,1);
-    if(newfd != 1){
-        fprintf(stderr,"Could not open data as fd 1\n");
-        exit(1);
+    int fd, newfd;
+    if (!add)
+        fd = open(output, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    else
+        fd = open(output, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    newfd = dup2(fd, 1);
+    if (newfd != 1)
+    {
+        fprintf(stderr, "Could not open data as fd 1\n");
+        exit(EXIT_FAILURE);
     }
 }
 
-void find(int argc, char *argv[])
-{   
+void redirect(int argc, char *argv[])
+{
     for (int i = 0; i < argc; i++)
     {
-        if (!strcmp(argv[i], "<")){
+        if (!strcmp(argv[i], "<"))
+        {
             redirect_input(argv[i + 1]);
             argv[i] = NULL;
             i++;
         }
-        if(!strcmp(argv[i],">")){
-            redirect_output(argv[i + 1]);
+        if (!strcmp(argv[i], ">"))
+        {
+            redirect_output(argv[i + 1], 0);
             argv[i] = NULL;
             i++;
+        }
+        if (!strcmp(argv[i], ">>"))
+        {
+            redirect_output(argv[i + 1], 1);
+            argv[i] = NULL;
+            i++;
+        }
+    }
+}
+
+void excute_pipe(char *cmdline)
+{
+    // 按 | 分割命令
+    int cmd_num = 0;
+    char *cmd[MAXARGS];
+    char *token = strtok(cmdline, "|");
+    while (token)
+    {
+        cmd[cmd_num++] = token;
+        token = strtok(NULL, "|");
+    }
+
+    int pipefd[2];
+    if (pipe(pipefd) == -1)
+    {
+        perror("pipe");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < cmd_num; i++)
+    {
+        pid_t pid = fork();
+        if (pid == -1)
+        {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+        else if (pid == 0)
+        {
+            if (i > 0)
+            {
+                close(pipefd[0]);
+                if (dup2(pipefd[1], 1) == -1)
+                {
+                    fprintf(stderr, "Could not redirect stdout");
+                    exit(EXIT_FAILURE);
+                }
+                close(pipefd[1]);
+            }
+
+            if (i < cmd_num - 1)
+            {
+                int new_pipefd[2];
+                if (pipe(pipefd) == -1)
+                {
+                    perror("pipe");
+                    exit(EXIT_FAILURE);
+                }
+                close(pipefd[1]);
+                if(dup2(pipefd[0],0) == -1){
+                    fprintf(stderr, "Could not redirect stdin");
+                    exit(EXIT_FAILURE);
+                }
+                close(pipefd[0]);
+                pipefd[0] = new_pipefd[0];
+                pipefd[1] = new_pipefd[1];
+
+                //执行当前命令
+            }
         }
     }
 }
