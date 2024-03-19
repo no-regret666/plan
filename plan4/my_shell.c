@@ -10,7 +10,6 @@
 #include <pwd.h>
 #include <time.h>
 #include <fcntl.h>
-#include <asm-generic/siginfo.h>
 
 #define MAXARGS 50
 #define ARGLEN 100
@@ -19,9 +18,8 @@ void set_prompt(char *prompt);               // 获取命令提示符
 int cd(char *path, char *pathname);          // cd命令
 void redirect_input(char *input);            // 输入重定向
 void redirect_output(char *output, int add); // 输出重定向
-void find(int argc, char *argv[]);       // 寻找特殊符号
+void find(int argc, char *argv[]);           // 寻找特殊符号
 void excute(char *cmdline);                  // 执行命令
-void sigchld_handler(int sig,siginfo_t *info,void *context);  //SIGCHLD信号处理函数
 
 char formerpath[256]; // 上一次工作目录
 
@@ -144,9 +142,9 @@ void redirect_input(char *input)
     int fd, newfd;
     fd = open(input, O_RDONLY);
     newfd = dup2(fd, 0);
-    if (newfd != 0)
+    if (newfd == -1)
     {
-        fprintf(stderr, "Could not open data as fd 0\n");
+        fprintf(stderr, "Could not redirect input\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -159,9 +157,9 @@ void redirect_output(char *output, int add)
     else
         fd = open(output, O_WRONLY | O_CREAT | O_APPEND, 0644);
     newfd = dup2(fd, 1);
-    if (newfd != 1)
+    if (newfd == -1)
     {
-        fprintf(stderr, "Could not open data as fd 1\n");
+        fprintf(stderr, "Could not redirect output\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -190,7 +188,10 @@ void find(int argc, char *argv[])
         }
         if (!strcmp(argv[i], "&"))
         {
-            
+            redirect_input("/dev/null");
+            redirect_output("/dev/null", 0);
+            argv[i] = NULL;
+            i++;
         }
     }
 }
@@ -236,31 +237,24 @@ void excute(char *cmdline)
                 if (i == 0)
                 {
                     // 关闭读数据端，并重定向写数据端
-                    close(pipefd[i][0]);
                     dup2(pipefd[i][1], 1);
-                    close(pipefd[i][1]);
                 }
 
                 // 最后一个命令
                 else if (i == cmd_num - 1)
                 {
                     // 关闭读数据端，并重定向写数据端
-                    close(pipefd[i - 1][1]);
                     dup2(pipefd[i - 1][0], 0);
-                    close(pipefd[i - 1][0]);
                 }
 
                 // 中间的命令
                 else
                 {
                     // 重定向读数据端
-                    close(pipefd[i - 1][1]);
                     dup2(pipefd[i - 1][0], 0);
-                    close(pipefd[i - 1][0]);
+
                     // 重定向写数据端
-                    close(pipefd[i][0]);
                     dup2(pipefd[i][1], 1);
-                    close(pipefd[i][1]);
                 }
 
                 // 关闭所有管道
@@ -274,14 +268,10 @@ void excute(char *cmdline)
             char *argv[MAXARGS];
             int argc = 0;
             argv[0] = cmd[i];
-            printf("%s", cmd[i]);
             for (int j = 0; j < MAXARGS - 1; j++)
                 argv[j] = strtok_r(argv[j], " ", &argv[j + 1]);
             while (argv[argc])
-            {
-                printf("%s", argv[argc]);
                 argc++;
-            }
 
             find(argc, argv);
             if (!strcmp(argv[0], "ls"))
@@ -304,10 +294,12 @@ void excute(char *cmdline)
         close(pipefd[i][1]);
     }
     for (int i = 0; i < cmd_num; i++)
-        wait(NULL);
-}
+    {
+        pid_t pid;
+        int status;
+        pid = wait(&status);
 
-// void sigchld_handler(int sig,siginfo_t *info,void *context){
-//     pid_t child_pid = info->si_code;
-//     int child_status = info->
-// }
+        if (strstr(cmd[i], "&"))
+            printf("%d    %s", pid, cmd[i]);
+    }
+}
