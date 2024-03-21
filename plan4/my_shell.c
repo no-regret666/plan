@@ -172,26 +172,32 @@ void find(int argc, char *argv[])
         {
             redirect_input(argv[i + 1]);
             argv[i] = NULL;
-            i++;
+            argv[i + 1] = NULL;
+            i += 2;
+            continue;
         }
         if (!strcmp(argv[i], ">"))
         {
             redirect_output(argv[i + 1], 0);
             argv[i] = NULL;
-            i++;
+            argv[i + 1] = NULL;
+            i += 2;
+            continue;
         }
         if (!strcmp(argv[i], ">>"))
         {
             redirect_output(argv[i + 1], 1);
             argv[i] = NULL;
-            i++;
+            argv[i + 1] = NULL;
+            i += 2;
+            continue;
         }
         if (!strcmp(argv[i], "&"))
         {
             redirect_input("/dev/null");
             redirect_output("/dev/null", 0);
             argv[i] = NULL;
-            i++;
+            i += 2;
         }
     }
 }
