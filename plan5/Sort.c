@@ -5,9 +5,10 @@
 #include <sys/time.h>
 #include <string.h>
 
-#define TOTAL_NUM 1000
-int nums[1000];
-int sortedNums[1000];
+#define TOTAL_NUM 10000
+pthread_mutex_t mutex;
+int nums[TOTAL_NUM];
+int sortedNums[TOTAL_NUM];
 //要排序的数组信息
 typedef struct{
     int startIndex; //数组起始下标
@@ -23,10 +24,12 @@ int compare(const void* num1,const void* num2){
 
 //线程需要实现的功能
 static void* threadFunc(void *arg){
+    pthread_mutex_lock(&mutex);
     SortInfo_t* sortInfo = (SortInfo_t*)arg;
     int index = sortInfo->startIndex;
     int num = sortInfo->num;
     qsort(&nums[index],num,sizeof(int),compare);
+    pthread_mutex_unlock(&mutex);
 }
 
 //合并排序
@@ -50,9 +53,11 @@ void merge(SortInfo_t* sortInfos,int threadNum){
 }
 
 int main(int argc,char *argv[]){
+    pthread_mutex_init(&mutex,NULL);
+
     srand((unsigned)time(NULL));
     for(int i = 0;i < TOTAL_NUM;i++){
-        nums[i] = rand() % 100;
+        nums[i] = rand();
     }
 
     printf("请输入所需线程数量：\n");
@@ -118,7 +123,7 @@ int main(int argc,char *argv[]){
     start_usec = start.tv_sec * 1000000 + start.tv_usec;
     end_usec = end.tv_sec * 1000000 + end.tv_usec;
     total = (double)(end_usec - start_usec)/1000000.0;
-    printf("%d个线程:%fs\n",threadNum,total);
+    printf("\n%d个线程:%fs\n",threadNum,total);
 
     free(sortInfos);
     free(pids);
