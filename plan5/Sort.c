@@ -57,7 +57,7 @@ int main(int argc,char *argv[]){
 
     srand((unsigned)time(NULL));
     for(int i = 0;i < TOTAL_NUM;i++){
-        nums[i] = rand();
+        nums[i] = rand() % 100;
     }
 
     printf("请输入所需线程数量：\n");
