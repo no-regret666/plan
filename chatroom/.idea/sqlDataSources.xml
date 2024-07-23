@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDataSourceStorage">
+    <option name="dataSources">
+      <list>
+        <State>
+          <option name="id" value="99d5c937-18c9-4eb7-9a4e-8960553d10bf" />
+          <option name="name" value="DDL data source" />
+          <option name="dbmsName" value="UNKNOWN" />
+          <option name="urls">
+            <array />
+          </option>
+          <option name="remarks" value="info" />
+          <option name="outLayout" value="File per object by schema.groovy" />
+        </State>
+      </list>
+    </option>
+  </component>
+</project>

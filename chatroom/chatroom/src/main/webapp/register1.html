@@ -1,23 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
     <meta charset="UTF-8">
     <title>登录</title>
 </head>
 
 <body>
     <div class="form">
-        <form>
+        <form method="post">
             <label>
                 <input type="text" name="username" placeholder="用户名" required><br/><br/>
                 <input type="password" name="password" placeholder="密码" required><br/><br/>
                 <button type="submit">登录</button><br/><br/>
-                <label for="option">更多选项：</label>
-                <select id="option" name="option" onchange="handleOptionChange(this.value);">
-                    <option value="option1">注册帐号</option>
-                    <option value="option2">注销帐号</option>
-                    <option value="option3">忘记密码</option>
-                </select>
+                <div class="dropdown">
+                    <button class="dropbtn">更多选项</button>
+                    <div class="dropdown-content">
+                        <a href="register2.html" target="_blank">注册帐号</a>
+                        <a href="register3.html" target="_blank">注销帐号</a>
+                        <a href="register4.html" target="_blank">找回密码</a>
+                    </div>
+                </div>
+
             </label>
         </form>
     </div>
@@ -32,17 +74,3 @@
         font-size: 25px;
     }
 </style>
-
-<script>
-    function handleOptionChange(value){
-        if(value === 'option1'){
-            window.location.href = 'register2.html';
-        }
-        else if(value === 'option2'){
-            window.location.href = 'register3.html';
-        }
-        else{
-            window.location.href = 'register4.html';
-        }
-    }
-</script>

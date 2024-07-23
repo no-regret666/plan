@@ -5,17 +5,25 @@
     <title>注册帐号</title>
 </head>
 <body>
-    <div class="form">
+    <div>
         <form>
             <label>
                 <input type="text" name="username" placeholder="用户名" required><br/><br/>
                 <input type="password" name="password" placeholder="密码" required><br/><br/>
-                <input type="text" name="check code" placeholder="验证码" required>
-                <br/><br/>
+                <input type="tel" name="phone" placeholder="手机号码" required>
+                <button type="submit">获取验证码</button><br/><br/>
+                <input type="text" name="check code" placeholder="验证码" required><br/><br/>
                 <button type="submit">注册</button>
-                <button onclick="window.location.href='register1.html'">返回上层</button>
             </label>
         </form>
     </div>
 </body>
 </html>
+
+<style>
+    form,
+    input,
+    button{
+        font-size: 25px;
+    }
+</style>
