@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册帐号</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(function (){
+            $("#username").blur(function (){
+                let username = $(this).val();
+                $.get("user/UserController",{username:username},function (){
+                    let span = $("#s_username");
+                    if(date.userExist){
+                        span.css("color","red");
+                        span.html(data.msg);
+                    }
+                    else{
+                        span.css("color","green");
+                        span.html(data.msg);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <form id="registerForm" method="post">
+            <label>
+                <input type="text" name="username" placeholder="用户名" required>
+                <span id="s_username"></span>
+                <br/><br/>
+                <input type="password" name="password" placeholder="密码" required><br/><br/>
+                <button type="submit">注册</button>
+            </label>
+        </form>
+    </div>
+    <script>
+        $(document).ready(function (){
+            $('#registerForm').submit(function (event){
+                event.preventDefault(); //防止表单默认提交
+
+                let username = $('username').val();
+                let password = $('password').val();
+
+                $.ajax({
+                    type:'post',
+                    url:'user/UserController',
+                    data:{username:username,password:password},
+                    success:function(data){
+                        if(data.success){
+                            $('#result'.text('注册成功'));
+                        }
+                        else{
+                            $('#result').text(data.message);
+                        }
+                    },
+                    error:function (){
+                        $("#result").text('注册失败，请稍后重试');
+                    }
+                })
+            })
+        })
+    </script>
+</body>
+</html>
+
+<style>
+    form,
+    input,
+    button{
+        font-size: 25px;
+    }
+</style>
