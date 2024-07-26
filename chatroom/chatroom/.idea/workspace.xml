@@ -5,30 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="75895b57-a4ee-4126-b332-c6ce85a3f820" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/noregret/pojo/User.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/a786d079-ee6c-43d6-b0a4-1fd0d9c1bb71.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/a786d079-ee6c-43d6-b0a4-1fd0d9c1bb71/storage_v2/_src_/schema/chatroom.M6i6VQ.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mvnw" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/chatroom/ChatroomApplication.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/chatroom/controller/UserController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/chatroom/mapper/UserMapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/chatroom/pojo/Result.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/chatroom/pojo/User.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/chatroom/service/UserService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/chatroom/service/impl/UserServiceImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/find1.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/find2.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/login.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/login2.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/register.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/org/example/chatroom/ChatroomApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/User.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/UserDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Mapper/UserMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/UserService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/UserServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/UserUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/UI/WelcomeUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../chatroom1/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/Chatroom1Application.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/controller/UserController.java" beforeDir="false" />
@@ -37,7 +30,6 @@
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/pojo/User.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/service/UserService.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/service/impl/UserServiceImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/resources/application.properties" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/test/java/org/example/chatroom1/Chatroom1ApplicationTests.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../net/NetWork" beforeDir="false" afterPath="$PROJECT_DIR$/../../net/NetWork" afterDir="false" />
     </list>
@@ -62,14 +54,23 @@
         <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
       </MavenGeneralSettings>
     </option>
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="jdkForImporter" value="21" />
+        <option name="workspaceImportForciblyTurnedOn" value="true" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="MavenRunner">
+    <option name="jreName" value="21" />
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 2
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="2jjN0LTPLSIJS1VOKEyxH9pLTYW" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="1" id="Add" />
@@ -81,8 +82,15 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.AppConfig.executor": "Run",
     "Application.Main.executor": "Run",
+    "Application.com.it.AppConfig.executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "Spring Boot.ChatroomApplication.executor": "Run",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/home/noregret/plan/chatroom/chatroom1",
@@ -95,6 +103,7 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.keymap",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -103,19 +112,19 @@
     ]
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="" />
+    </key>
+  </component>
   <component name="RunManager">
-    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Main" />
+    <configuration name="ChatroomApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="chatroom" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.noregret.ChatroomApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Application.Main" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -133,11 +142,31 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1721896304959</updated>
-      <workItem from="1721896305988" duration="12022000" />
+      <workItem from="1721896305988" duration="12559000" />
+      <workItem from="1721955769017" duration="274000" />
+      <workItem from="1721956084892" duration="91000" />
+      <workItem from="1721956184066" duration="110000" />
+      <workItem from="1721956301351" duration="212000" />
+      <workItem from="1721956519215" duration="13145000" />
+      <workItem from="1721979845693" duration="9326000" />
+      <workItem from="1721990252957" duration="2932000" />
+      <workItem from="1721993774695" duration="2746000" />
+      <workItem from="1721997298106" duration="2126000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
