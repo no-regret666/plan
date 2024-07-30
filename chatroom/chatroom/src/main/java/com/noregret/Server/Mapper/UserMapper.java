@@ -1,6 +1,6 @@
-package com.noregret.Mapper;
+package com.noregret.Server.Mapper;
 
-import com.noregret.pojo.User;
+import com.noregret.Server.pojo.User;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;

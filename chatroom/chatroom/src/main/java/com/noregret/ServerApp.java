@@ -1,14 +1,15 @@
 package com.noregret;
 
+import com.noregret.Server.Server;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
 @SpringBootApplication
-public class ChatroomApplication {
+public class ServerApp {
     public static void main(String[] args) {
-        ApplicationContext context = SpringApplication.run(ChatroomApplication.class, args);
-        WelcomeUI userUI = (WelcomeUI) context.getBean("welcomeUI");
-        userUI.menu();
+        ApplicationContext context = SpringApplication.run(ServerApp.class, args);
+        Server server = context.getBean(Server.class);
+        server.init(8080);
     }
 }

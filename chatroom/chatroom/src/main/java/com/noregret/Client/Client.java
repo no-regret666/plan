@@ -1,18 +1,16 @@
-package com.noregret;
+package com.noregret.Client;
 
-import com.noregret.Service.SendService;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-@Slf4j
+@Component
 public class Client {
     public void init(String host,int port){
         //创建事件循环组
@@ -37,7 +35,7 @@ public class Client {
             SendService sendService = new SendService(channel);
             sendService.sendMsg();
 
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
             if(group != null){

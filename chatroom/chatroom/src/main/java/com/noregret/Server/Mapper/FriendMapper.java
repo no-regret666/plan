@@ -1,4 +1,4 @@
-package com.noregret.Mapper;
+package com.noregret.Server.Mapper;
 
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
