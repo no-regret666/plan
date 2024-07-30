@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.noregret.MsgType;
 import io.netty.channel.Channel;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
@@ -29,6 +30,8 @@ public class SendService {
                 case 'b':
                     register();
                     break;
+                case 'e':
+                    System.exit(1);
             }
         }
     }
@@ -110,6 +113,7 @@ public class SendService {
         char c = sc.next().charAt(0);
         switch (c) {
             case 'a':
+                listFriend(username);
                 break;
             case 'b':
                 addFriend(username);
@@ -117,6 +121,21 @@ public class SendService {
             case 'e':
                 friendRequest(username);
                 break;
+        }
+    }
+
+    public void listFriend(String username) throws InterruptedException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("username", username);
+        node.put("type",String.valueOf(MsgType.MSG_LIST_FRIEND));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
+
+        String friends2 = (String) ClientHandler.queue2.take();
+        List<String> friends = objectMapper.readValue(friends2, new TypeReference<List<String>>() {});
+        for (String friend : friends) {
+            System.out.println(friend);
         }
     }
 
@@ -133,10 +152,9 @@ public class SendService {
         channel.writeAndFlush(msg);
 
         int code = ClientHandler.queue.take();
-        if(code == 100) {
+        if (code == 100) {
             System.out.println("已发送好友申请!");
-        }
-        else if (code == 200) {
+        } else if (code == 200) {
             System.out.println("不存在该用户!");
         }
     }
@@ -152,13 +170,34 @@ public class SendService {
 
         String fromUsers = (String) ClientHandler.queue2.take();
         List<String> fromUsers2 = objectMapper.readValue(fromUsers, new TypeReference<List<String>>() {});
+        HashMap<Integer, String> map = new HashMap<>();
+        int i = 1;
         for (String fromUser : fromUsers2) {
+            map.put(i, fromUser);
+            i++;
             System.out.println(fromUser + "发送了好友申请!");
+        }
+        System.out.println("请输入你要处理的好友申请(序号):");
+        Integer num = sc.nextInt();
+        String fromUser = map.get(num);
+        System.out.println("a.同意  b.拒绝");
+        char choice = sc.nextLine().charAt(0);
+        if (choice == 'a') {
+            friendResponse(fromUser, username, 0);
+        } else if (choice == 'b') {
+            friendResponse(fromUser, username, 1);
         }
     }
 
-    public void acceptFriendRequest(String username) throws InterruptedException{
-
+    public void friendResponse(String fromUser, String toUser, int code) throws InterruptedException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("type", String.valueOf(MsgType.MSG_FRIEND_RESPONSE));
+        node.put("fromUser", fromUser);
+        node.put("toUser", toUser);
+        node.put("code", code);
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
     }
 
 }

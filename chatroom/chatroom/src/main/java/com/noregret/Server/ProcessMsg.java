@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.noregret.MsgType;
+import com.noregret.Server.Mapper.FriendMapper;
 import com.noregret.Server.Mapper.RequestMapper;
 import com.noregret.Server.Mapper.UserMapper;
 import com.noregret.Server.pojo.User;
@@ -19,6 +20,8 @@ public class ProcessMsg {
     private UserMapper userMapper;
     @Autowired
     private RequestMapper requestMapper;
+    @Autowired
+    private FriendMapper friendMapper;
 
     public void sendResponse(String response, Channel channel) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
@@ -85,6 +88,27 @@ public class ProcessMsg {
             ObjectNode node = objectMapper.createObjectNode();
             node.put("type", String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST));
             node.put("fromUsers", fromUsers);
+            String recvMsg = node.toString();
+            channel.writeAndFlush(recvMsg);
+        }
+        else if(String.valueOf(MsgType.MSG_FRIEND_RESPONSE).equals(type)){
+            String fromUser = msg.get("fromUser").asText();
+            String toUser = msg.get("toUser").asText();
+            int code = msg.get("code").asInt();
+            if(code == 0){
+                friendMapper.insertFriendship(fromUser, toUser);
+                friendMapper.insertFriendship(toUser, fromUser);
+            }
+            requestMapper.deleteRequest(fromUser,toUser);
+        }
+        else if(String.valueOf(MsgType.MSG_LIST_FRIEND).equals(type)){
+            String username = msg.get("username").asText();
+            List<String> friends1 = friendMapper.selectFriend(username);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String friends = objectMapper.writeValueAsString(friends1);
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_LIST_FRIEND));
+            node.put("friends", friends);
             String recvMsg = node.toString();
             channel.writeAndFlush(recvMsg);
         }

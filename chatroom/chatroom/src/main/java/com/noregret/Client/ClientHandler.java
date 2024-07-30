@@ -37,5 +37,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
             String fromUsers = node.get("fromUsers").asText();
             queue2.put(fromUsers);
         }
+        else if(String.valueOf(MsgType.MSG_LIST_FRIEND).equals(type)){
+            String friends = node.get("friends").asText();
+            queue2.put(friends);
+        }
     }
 }
