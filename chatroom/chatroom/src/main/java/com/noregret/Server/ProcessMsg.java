@@ -5,13 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.noregret.MsgType;
 import com.noregret.Server.Mapper.FriendMapper;
+import com.noregret.Server.Mapper.MessageMapper;
 import com.noregret.Server.Mapper.RequestMapper;
 import com.noregret.Server.Mapper.UserMapper;
 import com.noregret.Server.pojo.User;
-import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -22,8 +25,13 @@ public class ProcessMsg {
     private RequestMapper requestMapper;
     @Autowired
     private FriendMapper friendMapper;
+    @Autowired
+    private MessageMapper messageMapper;
 
-    public void sendResponse(String response, Channel channel) throws Exception {
+    private static HashMap<String, ChannelHandlerContext> online1 = new HashMap<>(); //储存当前在线用户
+    private static HashMap<ChannelHandlerContext,String> online2 = new HashMap<>();
+
+    public void sendResponse(String response, ChannelHandlerContext channel) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode msg = mapper.readTree(response);
         String type = msg.get("type").asText();
@@ -39,6 +47,8 @@ public class ProcessMsg {
             } else {
                 if (password.equals(user.getPassword())) {
                     node.put("code", 100); //登录成功
+                    online1.put(username,channel);
+                    online2.put(channel,username);
                     login = true;
                 } else {
                     node.put("code", 200); //密码错误
@@ -74,8 +84,12 @@ public class ProcessMsg {
                 node.put("code", 200); //不存在该用户
             }
             else{
-                node.put("code", 100); //发送好友申请
-                requestMapper.insertRequest(username, friendName);
+                if(friendMapper.selectFriend2(username,friendName) == null) {
+                    node.put("code", 100); //发送好友申请
+                    requestMapper.insertRequest(username, friendName);
+                }else{
+                    node.put("code", 300); //已添加该好友
+                }
             }
             String recvMsg = node.toString();
             channel.writeAndFlush(recvMsg);
@@ -112,5 +126,72 @@ public class ProcessMsg {
             String recvMsg = node.toString();
             channel.writeAndFlush(recvMsg);
         }
+        else if(String.valueOf(MsgType.MSG_DELETE_FRIEND).equals(type)){
+            String username = msg.get("username").asText();
+            String friendName = msg.get("friendName").asText();
+            friendMapper.deleteFriend(username,friendName);
+            friendMapper.deleteFriend(friendName,username);
+        }
+        else if(String.valueOf(MsgType.MSG_OFFLINE).equals(type)){
+            String username = msg.get("username").asText();
+            ChannelHandlerContext ctx = online1.get(username);
+            online1.remove(username);
+            online2.remove(ctx);
+        }
+        else if(String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)){
+            String username = msg.get("username").asText();
+            String friendName = msg.get("friendName").asText();
+            ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_PRIVATE_CHAT));
+            if(friendMapper.selectFriend2(username,friendName) == null) {
+                node.put("code", 100); //不是好友
+            }
+            else{
+                if(isExist(friendName)){
+                    node.put("code", 200); //好友在线
+                }
+                else{
+                    node.put("code", 300); //好友不在线
+                }
+            }
+            String recvMsg = node.toString();
+            channel.writeAndFlush(recvMsg);
+        }
+        else if(String.valueOf(MsgType.MSG_SAVE_MESSAGE).equals(type)){
+            String fromUser = msg.get("fromUser").asText();
+            String toUser = msg.get("toUser").asText();
+            String content = msg.get("content").asText();
+            String time = msg.get("time").asText();
+            Timestamp time2 = Timestamp.valueOf(time);
+            int code = msg.get("code").asInt();
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode node = objectMapper.createObjectNode();
+            if(code == 200){
+                node.put("content", content);
+                node.put("time",time);
+                node.put("type", String.valueOf(MsgType.MSG_SAVE_MESSAGE));
+                node.put("fromUser", fromUser);
+                ChannelHandlerContext ctx = online1.get(toUser);
+                String recvMsg = node.toString();
+                ctx.writeAndFlush(recvMsg);
+                messageMapper.insert(fromUser,toUser,content,time2,"read");
+            }
+            else if(code == 300){
+                messageMapper.insert(fromUser,toUser,content,time2,"unread");
+            }
+        }
+    }
+
+    //判断该用户是否在线
+    public static boolean isExist(ChannelHandlerContext ctx){
+        return online2.containsKey(ctx);
+    }
+
+    public static boolean isExist(String username){
+        return online1.containsKey(username);
+    }
+
+    public static void remove(ChannelHandlerContext ctx){
+        online2.remove(ctx);
     }
 }

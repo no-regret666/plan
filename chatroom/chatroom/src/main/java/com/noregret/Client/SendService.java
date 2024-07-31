@@ -7,8 +7,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.noregret.MsgType;
 import io.netty.channel.Channel;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class SendService {
@@ -19,9 +22,16 @@ public class SendService {
         this.channel = channel;
     }
 
-    public void sendMsg() throws InterruptedException, JsonProcessingException {
-        menu();
+    public void menu() throws InterruptedException, JsonProcessingException {
+        System.out.println("-----------------------------------------");
+        System.out.println("              欢迎进入聊天室                ");
+        System.out.println("-----------------------------------------");
+        System.out.println("           a.登录       b.注册             ");
+        System.out.println("          c.找回密码     d.注销             ");
+        System.out.println("                 e.退出                    ");
         while (true) {
+            System.out.println("------------------------------------------");
+            System.out.println("请输入选择:");
             char c = sc.nextLine().charAt(0);
             switch (c) {
                 case 'a':
@@ -34,16 +44,6 @@ public class SendService {
                     System.exit(1);
             }
         }
-    }
-
-    public void menu() {
-        System.out.println("-----------------------------------------");
-        System.out.println("              欢迎进入聊天室                ");
-        System.out.println("-----------------------------------------");
-        System.out.println("           a.登录       b.注册             ");
-        System.out.println("          c.找回密码     d.注销             ");
-        System.out.println("                 e.退出                    ");
-        System.out.println("------------------------------------------");
     }
 
     public void login() throws InterruptedException, JsonProcessingException {
@@ -76,9 +76,9 @@ public class SendService {
     }
 
     public void register() throws InterruptedException {
-        System.out.println("请输入用户名:");
+        System.out.println("请输入用户名:(不超过10位)");
         String username = sc.nextLine();
-        System.out.println("请输入密码:");
+        System.out.println("请输入密码:(不超过16位)");
         String password = sc.nextLine();
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -107,20 +107,32 @@ public class SendService {
         System.out.println("c.删除好友");
         System.out.println("d.私聊");
         System.out.println("e.处理好友申请");
-        System.out.println("d.退出");
-        System.out.println("--------------------------------------");
-        Scanner sc = new Scanner(System.in);
-        char c = sc.next().charAt(0);
-        switch (c) {
-            case 'a':
-                listFriend(username);
-                break;
-            case 'b':
-                addFriend(username);
-                break;
-            case 'e':
-                friendRequest(username);
-                break;
+        System.out.println("f.退出");
+        while (true) {
+            System.out.println("--------------------------------------");
+            System.out.println("请输入选择:");
+            Scanner sc = new Scanner(System.in);
+            char c = sc.next().charAt(0);
+            switch (c) {
+                case 'a':
+                    listFriend(username);
+                    break;
+                case 'b':
+                    addFriend(username);
+                    break;
+                case 'e':
+                    friendRequest(username);
+                    break;
+                case 'c':
+                    deleteFriend(username);
+                    break;
+                case 'd':
+                    privateChat(username);
+                    break;
+                case 'f':
+                    offline(username);
+                    break;
+            }
         }
     }
 
@@ -128,14 +140,19 @@ public class SendService {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("username", username);
-        node.put("type",String.valueOf(MsgType.MSG_LIST_FRIEND));
+        node.put("type", String.valueOf(MsgType.MSG_LIST_FRIEND));
         String msg = node.toString();
         channel.writeAndFlush(msg);
 
         String friends2 = (String) ClientHandler.queue2.take();
-        List<String> friends = objectMapper.readValue(friends2, new TypeReference<List<String>>() {});
-        for (String friend : friends) {
-            System.out.println(friend);
+        List<String> friends = objectMapper.readValue(friends2, new TypeReference<List<String>>() {
+        });
+        if (!friends.isEmpty()) {
+            for (String friend : friends) {
+                System.out.println(friend);
+            }
+        } else {
+            System.out.println("无好友!");
         }
     }
 
@@ -148,7 +165,6 @@ public class SendService {
         node.put("friendName", friendName);
         node.put("type", String.valueOf(MsgType.MSG_FRIEND_REQUEST));
         String msg = node.toString();
-
         channel.writeAndFlush(msg);
 
         int code = ClientHandler.queue.take();
@@ -156,6 +172,8 @@ public class SendService {
             System.out.println("已发送好友申请!");
         } else if (code == 200) {
             System.out.println("不存在该用户!");
+        } else if (code == 300) {
+            System.out.println("已添加该好友!");
         }
     }
 
@@ -169,23 +187,29 @@ public class SendService {
         channel.writeAndFlush(msg);
 
         String fromUsers = (String) ClientHandler.queue2.take();
-        List<String> fromUsers2 = objectMapper.readValue(fromUsers, new TypeReference<List<String>>() {});
-        HashMap<Integer, String> map = new HashMap<>();
-        int i = 1;
-        for (String fromUser : fromUsers2) {
-            map.put(i, fromUser);
-            i++;
-            System.out.println(fromUser + "发送了好友申请!");
-        }
-        System.out.println("请输入你要处理的好友申请(序号):");
-        Integer num = sc.nextInt();
-        String fromUser = map.get(num);
-        System.out.println("a.同意  b.拒绝");
-        char choice = sc.nextLine().charAt(0);
-        if (choice == 'a') {
-            friendResponse(fromUser, username, 0);
-        } else if (choice == 'b') {
-            friendResponse(fromUser, username, 1);
+        List<String> fromUsers2 = objectMapper.readValue(fromUsers, new TypeReference<List<String>>() {
+        });
+        if (!fromUsers2.isEmpty()) {
+            HashMap<Integer, String> map = new HashMap<>();
+            int i = 1;
+            for (String fromUser : fromUsers2) {
+                map.put(i, fromUser);
+                System.out.println(i + "." + fromUser + "发送了好友申请!");
+                i++;
+            }
+            System.out.println("请输入你要处理的好友申请(序号):");
+            Integer num = sc.nextInt();
+            String fromUser = map.get(num);
+            sc.nextLine();
+            System.out.println("a.同意  b.拒绝");
+            char choice = sc.nextLine().charAt(0);
+            if (choice == 'a') {
+                friendResponse(fromUser, username, 0);
+            } else if (choice == 'b') {
+                friendResponse(fromUser, username, 1);
+            }
+        } else {
+            System.out.println("无新的好友申请!");
         }
     }
 
@@ -200,4 +224,69 @@ public class SendService {
         channel.writeAndFlush(msg);
     }
 
+    public void deleteFriend(String username) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("username", username);
+        System.out.println("请输入你要删除的好友用户名:");
+        String friendName = sc.nextLine();
+        node.put("friendName", friendName);
+        node.put("type", String.valueOf(MsgType.MSG_DELETE_FRIEND));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
+    }
+
+    public void offline(String username) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("username", username);
+        node.put("type", String.valueOf(MsgType.MSG_OFFLINE));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
+    }
+
+    public void privateChat(String username) throws InterruptedException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("username", username);
+        System.out.println("请输入你要私聊的好友用户名:");
+        String friendName = sc.nextLine();
+        node.put("friendName", friendName);
+        node.put("type", String.valueOf(MsgType.MSG_PRIVATE_CHAT));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
+
+        int code = ClientHandler.queue.take();
+        if (code == 100) {
+            System.out.println("你与对方还不是好友!");
+        } else {
+            if (code == 200) {
+                System.out.println("对方当前在线!");
+            } else if (code == 300) {
+                System.out.println("对方当前不在线!");
+            }
+            sendMsg(username, friendName, code);
+        }
+    }
+
+    public void sendMsg(String fromUser, String toUser, int code) throws InterruptedException {
+        while (true) {
+            String content = sc.nextLine();
+            Timestamp time = new Timestamp(System.currentTimeMillis());
+            System.out.println(time);
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("fromUser", fromUser);
+            node.put("toUser", toUser);
+            node.put("content", content);
+            node.put("time", time.toString());
+            node.put("code", code);
+            node.put("type", String.valueOf(MsgType.MSG_SAVE_MESSAGE));
+            String msg = node.toString();
+            channel.writeAndFlush(msg);
+            if (content.equals("bye")) {
+                break;
+            }
+        }
+    }
 }

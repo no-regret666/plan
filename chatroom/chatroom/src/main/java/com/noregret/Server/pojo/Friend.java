@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Friendship {
+public class Friend {
     Integer id;
     String username;
     String friendName;

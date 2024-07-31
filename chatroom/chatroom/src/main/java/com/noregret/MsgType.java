@@ -6,5 +6,9 @@ public enum MsgType {
     MSG_LIST_FRIEND, //好友列表
     MSG_FRIEND_REQUEST, //好友申请
     MSG_LIST_FRIEND_REQUEST, //好友申请列表
-    MSG_FRIEND_RESPONSE //处理好友申请
+    MSG_FRIEND_RESPONSE, //处理好友申请
+    MSG_DELETE_FRIEND, //删除好友
+    MSG_OFFLINE, //离线
+    MSG_PRIVATE_CHAT, //私聊
+    MSG_SAVE_MESSAGE //存储消息
 }

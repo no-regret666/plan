@@ -33,7 +33,9 @@ public class Client {
             //连接服务器
             Channel channel = bootstrap.connect(host,port).sync().channel();
             SendService sendService = new SendService(channel);
-            sendService.sendMsg();
+            sendService.menu();
+
+            channel.closeFuture().sync();
 
         } catch (Exception e) {
             throw new RuntimeException(e);

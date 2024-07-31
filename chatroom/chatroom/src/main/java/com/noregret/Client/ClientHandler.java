@@ -17,6 +17,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        System.out.println("Client received: " + msg);
         String response = (String) msg;
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(response);
@@ -40,6 +41,18 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
         else if(String.valueOf(MsgType.MSG_LIST_FRIEND).equals(type)){
             String friends = node.get("friends").asText();
             queue2.put(friends);
+        }
+        else if(String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)){
+            int code = node.get("code").asInt();
+            queue.put(code);
+        }else if(String.valueOf(MsgType.MSG_SAVE_MESSAGE).equals(type)){
+            String fromUser = node.get("fromUser").asText();
+            queue2.put(fromUser);
+            String content = node.get("content").asText();
+            queue2.put(content);
+            String time = node.get("time").asText();
+            queue2.put(time);
+            System.out.println(fromUser + ":" + content + "   " + time);
         }
     }
 }
