@@ -30,6 +30,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
             int code = node.get("code").asInt();
             queue.put(code);
         }
+        else if(String.valueOf(MsgType.MSG_FIND).equals(type)){
+
+        }
         else if(String.valueOf(MsgType.MSG_FRIEND_REQUEST).equals(type)){
             int code = node.get("code").asInt();
             queue.put(code);
@@ -47,12 +50,24 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
             queue.put(code);
         }else if(String.valueOf(MsgType.MSG_SAVE_MESSAGE).equals(type)){
             String fromUser = node.get("fromUser").asText();
-            queue2.put(fromUser);
             String content = node.get("content").asText();
-            queue2.put(content);
             String time = node.get("time").asText();
-            queue2.put(time);
             System.out.println(fromUser + ":" + content + "   " + time);
+        }else if(String.valueOf(MsgType.MSG_CREATE_GROUP).equals(type)){
+            int code = node.get("code").asInt();
+            queue.put(code);
+        }
+        else if(String.valueOf(MsgType.MSG_GROUP_REQUEST).equals(type)){
+            int code = node.get("code").asInt();
+            queue.put(code);
+        }
+        else if(String.valueOf(MsgType.MSG_LIST_GROUP).equals(type)){
+            String groups = node.get("groups").asText();
+            queue2.put(groups);
+        }
+        else if(String.valueOf(MsgType.MSG_GROUP_MEMBER).equals(type)){
+            String members = node.get("members").asText();
+            queue2.put(members);
         }
     }
 }

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Request {
-    private Integer id;
+    private int id;
     private String fromUser;
     private String toUser;
 }

@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.noregret.MsgType;
-import com.noregret.Server.Mapper.FriendMapper;
-import com.noregret.Server.Mapper.MessageMapper;
-import com.noregret.Server.Mapper.RequestMapper;
-import com.noregret.Server.Mapper.UserMapper;
+import com.noregret.Server.Mapper.*;
+import com.noregret.Server.pojo.Member;
 import com.noregret.Server.pojo.User;
 import io.netty.channel.ChannelHandlerContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +25,8 @@ public class ProcessMsg {
     private FriendMapper friendMapper;
     @Autowired
     private MessageMapper messageMapper;
+    @Autowired
+    private GroupMapper groupMapper;
 
     private static HashMap<String, ChannelHandlerContext> online1 = new HashMap<>(); //储存当前在线用户
     private static HashMap<ChannelHandlerContext,String> online2 = new HashMap<>();
@@ -74,6 +74,11 @@ public class ProcessMsg {
             String recvMsg = node.toString();
             channel.writeAndFlush(recvMsg);
         }
+        else if(String.valueOf(MsgType.MSG_FIND).equals(type)) {
+            String username = msg.get("username").asText();
+            String password = msg.get("password").asText();
+            userMapper.updatePassword(username, password);
+        }
         else if(String.valueOf(MsgType.MSG_FRIEND_REQUEST).equals(type)){
             String username = msg.get("username").asText();
             String friendName = msg.get("friendName").asText();
@@ -97,9 +102,8 @@ public class ProcessMsg {
         else if(String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST).equals(type)){
             String username = msg.get("username").asText();
             List<String> fromUsers1 = requestMapper.selectRequest(username);
-            ObjectMapper objectMapper = new ObjectMapper();
-            String fromUsers = objectMapper.writeValueAsString(fromUsers1);
-            ObjectNode node = objectMapper.createObjectNode();
+            String fromUsers = mapper.writeValueAsString(fromUsers1);
+            ObjectNode node = mapper.createObjectNode();
             node.put("type", String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST));
             node.put("fromUsers", fromUsers);
             String recvMsg = node.toString();
@@ -118,9 +122,8 @@ public class ProcessMsg {
         else if(String.valueOf(MsgType.MSG_LIST_FRIEND).equals(type)){
             String username = msg.get("username").asText();
             List<String> friends1 = friendMapper.selectFriend(username);
-            ObjectMapper objectMapper = new ObjectMapper();
-            String friends = objectMapper.writeValueAsString(friends1);
-            ObjectNode node = objectMapper.createObjectNode();
+            String friends = mapper.writeValueAsString(friends1);
+            ObjectNode node = mapper.createObjectNode();
             node.put("type", String.valueOf(MsgType.MSG_LIST_FRIEND));
             node.put("friends", friends);
             String recvMsg = node.toString();
@@ -164,8 +167,7 @@ public class ProcessMsg {
             String time = msg.get("time").asText();
             Timestamp time2 = Timestamp.valueOf(time);
             int code = msg.get("code").asInt();
-            ObjectMapper objectMapper = new ObjectMapper();
-            ObjectNode node = objectMapper.createObjectNode();
+            ObjectNode node = mapper.createObjectNode();
             if(code == 200){
                 node.put("content", content);
                 node.put("time",time);
@@ -179,6 +181,57 @@ public class ProcessMsg {
             else if(code == 300){
                 messageMapper.insert(fromUser,toUser,content,time2,"unread");
             }
+        }
+        else if(String.valueOf(MsgType.MSG_CREATE_GROUP).equals(type)){
+            String groupName = msg.get("groupName").asText();
+            String member = msg.get("member").asText();
+
+            ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_CREATE_GROUP));
+            if(groupMapper.getGroup(groupName) != null){
+                node.put("code", 100); //名称已被占用
+            }
+            else{
+                node.put("code", 200); //建群成功
+                groupMapper.insert(groupName,member,1);
+            }
+            String recvMsg = node.toString();
+            channel.writeAndFlush(recvMsg);
+        }
+        else if(String.valueOf(MsgType.MSG_GROUP_REQUEST).equals(type)){
+            String to = msg.get("groupName").asText();
+            String from = msg.get("member").asText();
+            ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_GROUP_REQUEST));
+            if(groupMapper.getGroup(to) == null){
+                node.put("code", 100); //群组不存在
+            }
+            else{
+                requestMapper.insertRequest(from,to);
+                node.put("code",200); //已发送加群申请
+            }
+            String recvMsg = node.toString();
+            channel.writeAndFlush(recvMsg);
+        }
+        else if(String.valueOf(MsgType.MSG_LIST_GROUP).equals(type)){
+            String username = msg.get("username").asText();
+            List<String> groups2 = groupMapper.getGroups(username);
+            ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_LIST_GROUP));
+            String groups = mapper.writeValueAsString(groups2);
+            node.put("groups", groups);
+            String recvMsg = node.toString();
+            channel.writeAndFlush(recvMsg);
+        }
+        else if(String.valueOf(MsgType.MSG_GROUP_MEMBER).equals(type)){
+            String groupName = msg.get("groupName").asText();
+            List<Member> members = groupMapper.getMembers(groupName);
+            ObjectNode node = mapper.createObjectNode();
+            String member2 = mapper.writeValueAsString(members);
+            node.put("members",member2);
+            node.put("type", String.valueOf(MsgType.MSG_GROUP_MEMBER));
+            String recvMsg = node.toString();
+            channel.writeAndFlush(recvMsg);
         }
     }
 
