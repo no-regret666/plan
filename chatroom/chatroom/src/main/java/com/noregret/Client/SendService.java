@@ -436,8 +436,9 @@ public class SendService {
             System.out.println(username + "的群组");
             System.out.println("-------------------------");
             for (String group : groups) {
-                System.out.println(group);
+                System.out.println(i + "." + group);
                 map.put(i, group);
+                i++;
             }
             System.out.println("-------------------------");
             System.out.println("请输入你要选择的群组序号:(按q返回个人主页)");
@@ -465,7 +466,7 @@ public class SendService {
         });
         int role = 0;
         for (Member member : members) {
-            if (member.getName().equals(username)) {
+            if (member.getMember().equals(username)) {
                 role = member.getRole();
             }
         }
@@ -500,7 +501,8 @@ public class SendService {
                     break;
                 case 'e':
                     breakGroup(groupName);
-                    break;
+                    listGroup(username);
+                    return;
                 case 'q':
                     listGroup(username);
                     return;
@@ -581,25 +583,25 @@ public class SendService {
         HashMap<Integer, String> map = new HashMap<>();
         HashMap<String, Integer> map2 = new HashMap<>();
         for (Member member : members) {
-            map.put(k, member.getName());
-            map2.put(member.getName(), member.getRole());
+            map.put(k, member.getMember());
+            map2.put(member.getMember(), member.getRole());
             if (member.getRole() == 1) {
                 System.out.println("群主:");
-                System.out.println(k + "." + member.getName());
+                System.out.println(k + "." + member.getMember());
             } else if (member.getRole() == 2) {
                 if (i == 1) {
                     System.out.println("管理员:");
-                    System.out.println(k + "." + member.getName());
+                    System.out.println(k + "." + member.getMember());
                 } else {
-                    System.out.println(k + "." + member.getName());
+                    System.out.println(k + "." + member.getMember());
                 }
                 i++;
             } else {
                 if (j == 1) {
                     System.out.println("普通成员:");
-                    System.out.println(k + "." + member.getName());
+                    System.out.println(k + "." + member.getMember());
                 } else {
-                    System.out.println(k + "." + member.getName());
+                    System.out.println(k + "." + member.getMember());
                 }
                 j++;
             }
@@ -647,14 +649,32 @@ public class SendService {
     }
 
     public void removeMember(String groupName, String memberName) {
-
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("memberName", memberName);
+        node.put("type", String.valueOf(MsgType.MSG_REMOVE_MEMBER));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
     }
 
     public void addManager(String groupName, String memberName) {
-
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("memberName", memberName);
+        node.put("type", String.valueOf(MsgType.MSG_ADD_MANAGER));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
     }
 
     public void removeManager(String groupName, String memberName) {
-
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("memberName", memberName);
+        node.put("type", String.valueOf(MsgType.MSG_REMOVE_MANAGER));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
     }
 }

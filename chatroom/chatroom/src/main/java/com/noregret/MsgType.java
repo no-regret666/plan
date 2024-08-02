@@ -19,5 +19,8 @@ public enum MsgType {
     MSG_QUIT_GROUP, //退出群组
     MSG_LIST_GROUP_REQUEST, //加群申请列表
     MSG_GROUP_RESPONSE, //处理加群申请
-    MSG_BREAK_GROUP //解散群组
+    MSG_BREAK_GROUP, //解散群组
+    MSG_REMOVE_MEMBER, //移除成员
+    MSG_ADD_MANAGER, //添加管理员
+    MSG_REMOVE_MANAGER //移除管理员
 }

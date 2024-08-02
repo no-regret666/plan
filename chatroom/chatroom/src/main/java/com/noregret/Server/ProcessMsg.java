@@ -209,7 +209,7 @@ public class ProcessMsg {
                 node.put("code", 100); //群组不存在
             }
             else{
-                request2Mapper.insertRequest(to,from);
+                request2Mapper.insertRequest(from,to);
                 node.put("code",200); //已发送加群申请
             }
             String recvMsg = node.toString();
@@ -231,6 +231,7 @@ public class ProcessMsg {
             int code = msg.get("code").asInt();
             if(code == 0){
                 groupMapper.insert(groupName,from,3);
+                request2Mapper.deleteRequest(from,groupName);
             }
         }
         else if(String.valueOf(MsgType.MSG_LIST_GROUP).equals(type)){
@@ -257,6 +258,25 @@ public class ProcessMsg {
             String username = msg.get("username").asText();
             String groupName = msg.get("groupName").asText();
             groupMapper.deleteMember(groupName,username);
+        }
+        else if(String.valueOf(MsgType.MSG_BREAK_GROUP).equals(type)){
+            String groupName = msg.get("groupName").asText();
+            groupMapper.deleteGroup(groupName);
+        }
+        else if(String.valueOf(MsgType.MSG_REMOVE_MEMBER).equals(type)){
+            String groupName = msg.get("groupName").asText();
+            String member = msg.get("memberName").asText();
+            groupMapper.deleteMember(groupName,member);
+        }
+        else if(String.valueOf(MsgType.MSG_ADD_MANAGER).equals(type)){
+            String groupName = msg.get("groupName").asText();
+            String member = msg.get("memberName").asText();
+            groupMapper.modifyManager(groupName,member,2);
+        }
+        else if(String.valueOf(MsgType.MSG_REMOVE_MANAGER).equals(type)){
+            String groupName = msg.get("groupName").asText();
+            String member = msg.get("memberName").asText();
+            groupMapper.modifyManager(groupName,member,3);
         }
     }
 
