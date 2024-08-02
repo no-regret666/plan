@@ -69,5 +69,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
             String members = node.get("members").asText();
             queue2.put(members);
         }
+        else if(String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST).equals(type)){
+            String fromUsers = node.get("fromUsers").asText();
+            queue2.put(fromUsers);
+        }
     }
 }

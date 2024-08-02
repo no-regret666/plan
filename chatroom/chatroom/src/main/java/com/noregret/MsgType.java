@@ -15,5 +15,9 @@ public enum MsgType {
     MSG_GROUP_REQUEST, //加入群组申请
     MSG_FIND, //找回密码
     MSG_LIST_GROUP, //群组列表
-    MSG_GROUP_MEMBER //获取群成员及身份
+    MSG_GROUP_MEMBER, //获取群成员及身份
+    MSG_QUIT_GROUP, //退出群组
+    MSG_LIST_GROUP_REQUEST, //加群申请列表
+    MSG_GROUP_RESPONSE, //处理加群申请
+    MSG_BREAK_GROUP //解散群组
 }

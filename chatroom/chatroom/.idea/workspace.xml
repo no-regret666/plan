@@ -5,18 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="75895b57-a4ee-4126-b332-c6ce85a3f820" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Client/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/SendService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Client/SendService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/MsgType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/MsgType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/UserMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/UserMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/GroupMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/GroupMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/RequestMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/Request1Mapper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Friend.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Friend.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Message.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Request.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Request.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ServerHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Member.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Request.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Request1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../chatroom1/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/Chatroom1Application.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/controller/UserController.java" beforeDir="false" />
@@ -94,7 +92,7 @@
     "Spring Boot.ServerApp.executor": "Run",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/noregret/plan/chatroom/chatroom1",
+    "last_opened_file_path": "/home/noregret/plan/chatroom/chatroom",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -110,6 +108,9 @@
   "keyToStringList": {
     "DatabaseDriversLRU": [
       "mysql"
+    ],
+    "com.intellij.ide.scratch.LRUPopupBuilder$1/SQL Dialect": [
+      "MySQL"
     ]
   }
 }]]></component>
@@ -178,6 +179,8 @@
       <workItem from="1722407533323" duration="1813000" />
       <workItem from="1722409357052" duration="23046000" />
       <workItem from="1722474288228" duration="33354000" />
+      <workItem from="1722522172944" duration="47000" />
+      <workItem from="1722560719964" duration="12593000" />
     </task>
     <servers />
   </component>

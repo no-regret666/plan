@@ -2,6 +2,7 @@ package com.noregret.Server.Mapper;
 
 import com.noregret.Server.pojo.Group;
 import com.noregret.Server.pojo.Member;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -24,4 +25,7 @@ public interface GroupMapper {
 
     @Select("select member,role from `group` where group_name = #{groupName}")
     List<Member> getMembers(String groupName);
+
+    @Delete("delete * from group where group_name = #{groupName} and member = #{member}")
+    void deleteMember(String groupName, String member);
 }

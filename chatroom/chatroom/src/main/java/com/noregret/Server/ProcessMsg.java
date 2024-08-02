@@ -20,13 +20,15 @@ public class ProcessMsg {
     @Autowired
     private UserMapper userMapper;
     @Autowired
-    private RequestMapper requestMapper;
+    private Request1Mapper request1Mapper;
     @Autowired
     private FriendMapper friendMapper;
     @Autowired
     private MessageMapper messageMapper;
     @Autowired
     private GroupMapper groupMapper;
+    @Autowired
+    private Request2Mapper request2Mapper;
 
     private static HashMap<String, ChannelHandlerContext> online1 = new HashMap<>(); //储存当前在线用户
     private static HashMap<ChannelHandlerContext,String> online2 = new HashMap<>();
@@ -82,7 +84,7 @@ public class ProcessMsg {
         else if(String.valueOf(MsgType.MSG_FRIEND_REQUEST).equals(type)){
             String username = msg.get("username").asText();
             String friendName = msg.get("friendName").asText();
-            User user = userMapper.getUser(username);
+            User user = userMapper.getUser(friendName);
             ObjectNode node = mapper.createObjectNode();
             node.put("type", String.valueOf(MsgType.MSG_FRIEND_REQUEST));
             if (user == null) {
@@ -91,7 +93,7 @@ public class ProcessMsg {
             else{
                 if(friendMapper.selectFriend2(username,friendName) == null) {
                     node.put("code", 100); //发送好友申请
-                    requestMapper.insertRequest(username, friendName);
+                    request1Mapper.insertRequest(username, friendName);
                 }else{
                     node.put("code", 300); //已添加该好友
                 }
@@ -101,7 +103,7 @@ public class ProcessMsg {
         }
         else if(String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST).equals(type)){
             String username = msg.get("username").asText();
-            List<String> fromUsers1 = requestMapper.selectRequest(username);
+            List<String> fromUsers1 = request1Mapper.selectRequest(username);
             String fromUsers = mapper.writeValueAsString(fromUsers1);
             ObjectNode node = mapper.createObjectNode();
             node.put("type", String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST));
@@ -117,7 +119,7 @@ public class ProcessMsg {
                 friendMapper.insertFriendship(fromUser, toUser);
                 friendMapper.insertFriendship(toUser, fromUser);
             }
-            requestMapper.deleteRequest(fromUser,toUser);
+            request1Mapper.deleteRequest(fromUser,toUser);
         }
         else if(String.valueOf(MsgType.MSG_LIST_FRIEND).equals(type)){
             String username = msg.get("username").asText();
@@ -207,11 +209,29 @@ public class ProcessMsg {
                 node.put("code", 100); //群组不存在
             }
             else{
-                requestMapper.insertRequest(from,to);
+                request2Mapper.insertRequest(to,from);
                 node.put("code",200); //已发送加群申请
             }
             String recvMsg = node.toString();
             channel.writeAndFlush(recvMsg);
+        }
+        else if(String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST).equals(type)){
+            String groupName = msg.get("groupName").asText();
+            List<String> fromUsers2 = request2Mapper.selectRequest(groupName);
+            String fromUsers = mapper.writeValueAsString(fromUsers2);
+            ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST));
+            node.put("fromUsers", fromUsers);
+            String recvMsg = node.toString();
+            channel.writeAndFlush(recvMsg);
+        }
+        else if(String.valueOf(MsgType.MSG_GROUP_RESPONSE).equals(type)){
+            String groupName = msg.get("groupName").asText();
+            String from = msg.get("fromUser").asText();
+            int code = msg.get("code").asInt();
+            if(code == 0){
+                groupMapper.insert(groupName,from,3);
+            }
         }
         else if(String.valueOf(MsgType.MSG_LIST_GROUP).equals(type)){
             String username = msg.get("username").asText();
@@ -232,6 +252,11 @@ public class ProcessMsg {
             node.put("type", String.valueOf(MsgType.MSG_GROUP_MEMBER));
             String recvMsg = node.toString();
             channel.writeAndFlush(recvMsg);
+        }
+        else if(String.valueOf(MsgType.MSG_QUIT_GROUP).equals(type)){
+            String username = msg.get("username").asText();
+            String groupName = msg.get("groupName").asText();
+            groupMapper.deleteMember(groupName,username);
         }
     }
 

@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Request {
+public class Request2 {
     private int id;
+    private String groupName;
     private String fromUser;
-    private String toUser;
 }

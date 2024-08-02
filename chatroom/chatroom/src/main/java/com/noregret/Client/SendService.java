@@ -238,10 +238,13 @@ public class SendService {
                 i++;
             }
             System.out.println("--------------------------");
-            System.out.println("输入你要选择的好友序号:");
-            int choice = sc.nextInt();
-            sc.nextLine();
-            friendMenu(username, map.get(choice));
+            System.out.println("输入你要选择的好友序号:(按q返回个人主页)");
+            char c = sc.nextLine().charAt(0);
+            if (c == 'q') {
+                personHome(username);
+                return;
+            }
+            friendMenu(username, map.get(Character.getNumericValue(c)));
         } else {
             System.out.println("你当前未加好友!");
         }
@@ -253,6 +256,7 @@ public class SendService {
         System.out.println("----------------------------");
         System.out.println("a.私聊");
         System.out.println("d.删除该好友");
+        System.out.println("q.返回好友列表");
         while (true) {
             System.out.println("----------------------------");
             System.out.println("请输入选择:");
@@ -264,6 +268,9 @@ public class SendService {
                 case 'd':
                     deleteFriend(username, friendName);
                     personHome(username);
+                    return;
+                case 'q':
+                    listFriend(username);
                     return;
             }
         }
@@ -411,7 +418,7 @@ public class SendService {
         }
     }
 
-    public void listGroup(String username) throws InterruptedException, JsonProcessingException {
+    public void listGroup(String username) throws InterruptedException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("username", username);
@@ -424,53 +431,230 @@ public class SendService {
         });
         if (!groups.isEmpty()) {
             int i = 1;
-            HashMap<Integer,String> map = new HashMap<>();
+            HashMap<Integer, String> map = new HashMap<>();
             System.out.println("-------------------------");
             System.out.println(username + "的群组");
             System.out.println("-------------------------");
             for (String group : groups) {
                 System.out.println(group);
-                map.put(i,group);
+                map.put(i, group);
             }
             System.out.println("-------------------------");
-            System.out.println("请输入你要选择的群组序号:");
-            int choice = sc.nextInt();
-            sc.nextLine();
-            groupMenu(username,map.get(choice));
+            System.out.println("请输入你要选择的群组序号:(按q返回个人主页)");
+            char c = sc.nextLine().charAt(0);
+            if (c == 'q') {
+                personHome(username);
+                return;
+            }
+            groupMenu(username, map.get(Character.getNumericValue(c)));
         } else {
             System.out.println("你尚未加入群组!");
         }
     }
 
-    public void groupMenu(String username,String groupName) throws InterruptedException, JsonProcessingException {
+    public void groupMenu(String username, String groupName) throws InterruptedException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("groupName", groupName);
-        node.put("type",String.valueOf(MsgType.MSG_GROUP_MEMBER));
+        node.put("type", String.valueOf(MsgType.MSG_GROUP_MEMBER));
         String msg = node.toString();
         channel.writeAndFlush(msg);
 
         String members2 = (String) ClientHandler.queue2.take();
-        List<Member> members = objectMapper.readValue(members2,new TypeReference<>() {
+        List<Member> members = objectMapper.readValue(members2, new TypeReference<>() {
         });
         int role = 0;
         for (Member member : members) {
-            if(member.getMember().equals(username)){
+            if (member.getName().equals(username)) {
                 role = member.getRole();
             }
         }
-        System.out.println("------------------------");
+        System.out.println("-----------------------------");
         System.out.println("群组 " + groupName);
-        System.out.println("------------------------");
+        System.out.println("-----------------------------");
         System.out.println("a.群成员");
         System.out.println("b.群聊");
-        if(role == 1 || role == 2){
-            System.out.println("c.处理加群申请");
+        if (role == 2 || role == 3) {
+            System.out.println("c.退出群组");
+        } else {
+            System.out.println("d.处理加群申请");
+            if (role == 1) {
+                System.out.println("e.解散群组");
+            }
         }
-        if(role == 2 || role == 3){
-            System.out.println("d.退出群组");
-        }else if(role == 1){
-            System.out.println("d.解散群组");
+        System.out.println("q.返回群组列表");
+        while (true) {
+            System.out.println("------------------------------");
+            System.out.println("请输入选择:");
+            char c = sc.nextLine().charAt(0);
+            switch (c) {
+                case 'a':
+                    listMember(username, groupName, role, members);
+                    break;
+                case 'c':
+                    quitGroup(username, groupName);
+                    listGroup(username);
+                    return;
+                case 'd':
+                    groupRequest(groupName);
+                    break;
+                case 'e':
+                    breakGroup(groupName);
+                    break;
+                case 'q':
+                    listGroup(username);
+                    return;
+            }
         }
+    }
+
+    public void quitGroup(String username, String groupName) throws InterruptedException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("username", username);
+        node.put("type", String.valueOf(MsgType.MSG_QUIT_GROUP));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
+        System.out.println("已退出该群组!");
+    }
+
+    public void groupRequest(String groupName) throws InterruptedException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("type", String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
+
+        String fromUsers2 = (String) ClientHandler.queue2.take();
+        List<String> fromUsers = objectMapper.readValue(fromUsers2, new TypeReference<>() {
+        });
+        if (!fromUsers.isEmpty()) {
+            int i = 1;
+            HashMap<Integer, String> map = new HashMap<>();
+            for (String fromUser : fromUsers) {
+                map.put(i, fromUser);
+                System.out.println(i + "." + fromUser + "申请加入该群聊!");
+                i++;
+            }
+            System.out.println("请输入你要处理的加群申请(序号):");
+            Integer num = sc.nextInt();
+            String fromUser = map.get(num);
+            sc.nextLine();
+            System.out.println("a.同意  b.拒绝");
+            char choice = sc.nextLine().charAt(0);
+            if (choice == 'a') {
+                groupResponse(fromUser, groupName, 0);
+            } else if (choice == 'b') {
+                groupResponse(fromUser, groupName, 1);
+            }
+        } else {
+            System.out.println("无新的加群申请!");
+        }
+    }
+
+    public void groupResponse(String fromUser, String groupName, int code) throws InterruptedException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("fromUser", fromUser);
+        node.put("groupName", groupName);
+        node.put("code",code);
+        node.put("type", String.valueOf(MsgType.MSG_GROUP_RESPONSE));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
+    }
+
+
+    public void breakGroup(String groupName) throws InterruptedException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("type", String.valueOf(MsgType.MSG_BREAK_GROUP));
+        String msg = node.toString();
+        channel.writeAndFlush(msg);
+    }
+
+    public void listMember(String username, String groupName, int role, List<Member> members) throws IOException, InterruptedException {
+        System.out.println("群组 " + groupName + " 成员");
+        int i = 1, j = 1, k = 1;
+        HashMap<Integer, String> map = new HashMap<>();
+        HashMap<String, Integer> map2 = new HashMap<>();
+        for (Member member : members) {
+            map.put(k, member.getName());
+            map2.put(member.getName(), member.getRole());
+            if (member.getRole() == 1) {
+                System.out.println("群主:");
+                System.out.println(k + "." + member.getName());
+            } else if (member.getRole() == 2) {
+                if (i == 1) {
+                    System.out.println("管理员:");
+                    System.out.println(k + "." + member.getName());
+                } else {
+                    System.out.println(k + "." + member.getName());
+                }
+                i++;
+            } else {
+                if (j == 1) {
+                    System.out.println("普通成员:");
+                    System.out.println(k + "." + member.getName());
+                } else {
+                    System.out.println(k + "." + member.getName());
+                }
+                j++;
+            }
+            k++;
+        }
+        if (role == 1 || role == 2) {
+            System.out.println("a.移除成员");
+        }
+        if (role == 1) {
+            System.out.println("b.设置管理员");
+            System.out.println("c.取消管理员");
+        }
+        System.out.println("q.返回上层");
+        while (true) {
+            System.out.println("请输入选择:");
+            char c = sc.nextLine().charAt(0);
+            int num = 0;
+            switch (c) {
+                case 'a':
+                    System.out.println("请输入你要移除的成员序号:");
+                    num = sc.nextInt();
+                    sc.nextLine();
+                    if (role == 2 && (map2.get(map.get(num)) == 1 || map2.get(map.get(num)) == 2)) {
+                        System.out.println("管理员只能移除普通成员");
+                    }
+                    removeMember(groupName, map.get(num));
+                    break;
+                case 'b':
+                    System.out.println("请输入你要添加管理员的成员序号:");
+                    num = sc.nextInt();
+                    sc.nextLine();
+                    addManager(groupName, map.get(num));
+                    break;
+                case 'c':
+                    System.out.println("请输入你要取消管理员的成员序号:");
+                    num = sc.nextInt();
+                    sc.nextLine();
+                    removeManager(groupName, map.get(num));
+                    break;
+                case 'q':
+                    groupMenu(username, groupName);
+                    return;
+            }
+        }
+    }
+
+    public void removeMember(String groupName, String memberName) {
+
+    }
+
+    public void addManager(String groupName, String memberName) {
+
+    }
+
+    public void removeManager(String groupName, String memberName) {
+
     }
 }

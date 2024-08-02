@@ -3,11 +3,13 @@ package com.noregret.Server;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @ChannelHandler.Sharable
+@Slf4j
 public class ServerHandler extends SimpleChannelInboundHandler<String> {
     @Autowired private ProcessMsg processMsg;
 
