@@ -5,16 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="75895b57-a4ee-4126-b332-c6ce85a3f820" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Client/NettyClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Client/ClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/SendService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Client/SendService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/ClientApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/ClientApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/MsgType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/MsgType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/GroupMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/GroupMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/MessageMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/MessageMapper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/NettyServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Member.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/ServerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/ServerApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Message.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../chatroom1/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/Chatroom1Application.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/controller/UserController.java" beforeDir="false" />
@@ -80,7 +79,7 @@
     "Application.Client.executor": "Run",
     "Application.ClientApp.executor": "Run",
     "Application.Main.executor": "Run",
-    "Application.Server.executor": "Run",
+    "Application.Server.executor": "Debug",
     "Application.ServerApp.executor": "Debug",
     "Application.com.it.AppConfig.executor": "Run",
     "RequestMappingsPanelOrder0": "0",
@@ -92,7 +91,7 @@
     "Spring Boot.ServerApp.executor": "Run",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/noregret/plan/chatroom/chatroom",
+    "last_opened_file_path": "/home/noregret/java_practice/plan6",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -181,7 +180,10 @@
       <workItem from="1722474288228" duration="33354000" />
       <workItem from="1722522172944" duration="47000" />
       <workItem from="1722560719964" duration="12593000" />
-      <workItem from="1722584360223" duration="11058000" />
+      <workItem from="1722584360223" duration="11590000" />
+      <workItem from="1722607058730" duration="14000" />
+      <workItem from="1722607570836" duration="467000" />
+      <workItem from="1722651783817" duration="15808000" />
     </task>
     <servers />
   </component>
@@ -198,5 +200,22 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java</url>
+          <line>148</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="com.noregret.Server.pojo.Message" memberName="fromUser" />
+        <PinnedItemInfo parentTag="com.noregret.Server.pojo.Message" memberName="id" />
+      </pinned-members>
+    </pin-to-top-manager>
   </component>
 </project>

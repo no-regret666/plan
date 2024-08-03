@@ -48,11 +48,15 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
         else if(String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)){
             int code = node.get("code").asInt();
             queue.put(code);
+            if(code == 200){
+                String messages = node.get("messages").asText();
+                queue2.put(messages);
+            }
         }else if(String.valueOf(MsgType.MSG_SAVE_MESSAGE).equals(type)){
             String fromUser = node.get("fromUser").asText();
             String content = node.get("content").asText();
             String time = node.get("time").asText();
-            System.out.println(fromUser + ":" + content + "   " + time);
+            System.out.println(fromUser + ":" + content + "  " + time);
         }else if(String.valueOf(MsgType.MSG_CREATE_GROUP).equals(type)){
             int code = node.get("code").asInt();
             queue.put(code);

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.noregret.MsgType;
 import com.noregret.Server.pojo.Member;
+import com.noregret.Server.pojo.Message;
 import io.netty.channel.Channel;
 import org.apache.commons.mail.HtmlEmail;
 
@@ -341,7 +342,7 @@ public class SendService {
         channel.writeAndFlush(msg);
     }
 
-    public void privateChat(String username, String friendName) throws InterruptedException {
+    public void privateChat(String username, String friendName) throws InterruptedException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("username", username);
@@ -353,31 +354,37 @@ public class SendService {
         int code = ClientHandler.queue.take();
         if (code == 100) {
             System.out.println("你与对方还不是好友!");
-        } else {
-            if (code == 200) {
-                System.out.println("对方当前在线!可以开始聊天!");
-            } else if (code == 300) {
-                System.out.println("对方当前不在线!等待对方上线后接收消息!");
-            }
-            while (true) {
-                String content = sc.nextLine();
-                Timestamp time = new Timestamp(System.currentTimeMillis());
-                System.out.println(time);
-                node = objectMapper.createObjectNode();
-                node.put("fromUser", username);
-                node.put("toUser", friendName);
-                node.put("content", content);
-                node.put("time", time.toString());
-                node.put("code", code);
-                node.put("type", String.valueOf(MsgType.MSG_SAVE_MESSAGE));
-                msg = node.toString();
-                channel.writeAndFlush(msg);
-
-                if ("bye".equals(content)) {
-                    break;
+            return;
+        }
+        else if(code == 200) {
+            String messages2 = (String) ClientHandler.queue2.take();
+            List<Message> messages = objectMapper.readValue(messages2, new TypeReference<>() {
+            });
+            if(!messages.isEmpty()) {
+                for (Message message : messages) {
+                    System.out.println(message.getFromUser() + ":" + message.getContent() + "  " + message.getTime());
                 }
             }
         }
+        System.out.println("开始聊天!");
+        while (true) {
+            String content = sc.nextLine();
+            Timestamp time = new Timestamp(System.currentTimeMillis());
+            System.out.println(time);
+            node = objectMapper.createObjectNode();
+            node.put("fromUser", username);
+            node.put("toUser", friendName);
+            node.put("content", content);
+            node.put("time", time.toString());
+            node.put("type", String.valueOf(MsgType.MSG_SAVE_MESSAGE));
+            msg = node.toString();
+            channel.writeAndFlush(msg);
+
+            if ("q".equals(content)) {
+                break;
+            }
+        }
+
     }
 
     public void createGroup(String username) throws InterruptedException {
@@ -561,7 +568,7 @@ public class SendService {
         ObjectNode node = objectMapper.createObjectNode();
         node.put("fromUser", fromUser);
         node.put("groupName", groupName);
-        node.put("code",code);
+        node.put("code", code);
         node.put("type", String.valueOf(MsgType.MSG_GROUP_RESPONSE));
         String msg = node.toString();
         channel.writeAndFlush(msg);

@@ -18,7 +18,7 @@ public class Message {
     private MessageStatus status;
 
     public enum MessageStatus {
-        UNREAD,
-        READ
+        unread,
+        read
     }
 }
