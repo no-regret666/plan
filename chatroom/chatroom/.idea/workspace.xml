@@ -1,19 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="AutoImportSettings">
-    <option name="autoReloadType" value="SELECTIVE" />
-  </component>
   <component name="ChangeListManager">
-    <list default="true" id="75895b57-a4ee-4126-b332-c6ce85a3f820" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+    <list default="true" id="baf4dd27-21b5-4af7-9ff5-76b6e2e4e8ca" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Client/ClientHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/SendService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Client/SendService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/ClientApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/ClientApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/MessageMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/MessageMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Message.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/Client.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/ClientHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Client/SendService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/ClientApp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/MsgType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/FriendMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/GroupMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/MessageMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/Request1Mapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/Request2Mapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Mapper/UserMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/Server.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/ServerHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Friend.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Group.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Member.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Message.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Request1.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/Request2.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/Server/pojo/User.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/noregret/ServerApp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/example/demo/ChatroomApplicationTest.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../chatroom1/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/Chatroom1Application.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../chatroom1/src/main/java/org/example/chatroom1/controller/UserController.java" beforeDir="false" />
@@ -30,44 +53,13 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Interface" />
-        <option value="Class" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
-  <component name="MavenImportPreferences">
-    <option name="generalSettings">
-      <MavenGeneralSettings>
-        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
-      </MavenGeneralSettings>
-    </option>
-    <option name="importingSettings">
-      <MavenImportingSettings>
-        <option name="jdkForImporter" value="21" />
-        <option name="workspaceImportForciblyTurnedOn" value="true" />
-      </MavenImportingSettings>
-    </option>
-  </component>
-  <component name="MavenRunner">
-    <option name="jreName" value="21" />
-  </component>
-  <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
-  </component>
   <component name="ProjectColorInfo">{
-  &quot;customColor&quot;: &quot;&quot;,
-  &quot;associatedIndex&quot;: 2
+  &quot;associatedIndex&quot;: 5
 }</component>
-  <component name="ProjectId" id="2jjN0LTPLSIJS1VOKEyxH9pLTYW" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="1" id="Add" />
-  </component>
+  <component name="ProjectId" id="2kEKoxKJlxecEEecPPmifkzhzKR" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -75,77 +67,14 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.AppConfig.executor": "Run",
-    "Application.Client.executor": "Run",
-    "Application.ClientApp.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.Server.executor": "Debug",
-    "Application.ServerApp.executor": "Debug",
-    "Application.com.it.AppConfig.executor": "Run",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "Spring Boot.ChatroomApplication.executor": "Run",
-    "Spring Boot.ServerApp.executor": "Run",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/noregret/java_practice/plan6",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
+    "last_opened_file_path": "/home/noregret/plan/chatroom/chatroom/Server",
     "nodejs_package_manager_path": "npm",
-    "onboarding.tips.debug.path": "/home/noregret/plan/chatroom/chatroom/src/main/java/Main.java",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.keymap",
     "vue.rearranger.settings.migration": "true"
-  },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql"
-    ],
-    "com.intellij.ide.scratch.LRUPopupBuilder$1/SQL Dialect": [
-      "MySQL"
-    ]
   }
 }]]></component>
-  <component name="RecentsManager">
-    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
-      <recent name="" />
-    </key>
-  </component>
-  <component name="RunManager" selected="Application.Client">
-    <configuration name="Client" type="Application" factoryName="Application" singleton="false">
-      <option name="MAIN_CLASS_NAME" value="com.noregret.ClientApp" />
-      <module name="chatroom" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Server" type="Application" factoryName="Application">
-      <option name="MAIN_CLASS_NAME" value="com.noregret.ServerApp" />
-      <module name="chatroom" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ServerApp" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
-      <module name="chatroom" />
-      <option name="SPRING_BOOT_MAIN_CLASS" value="com.noregret.ServerApp" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <list>
-      <item itemvalue="Application.Client" />
-      <item itemvalue="Application.Server" />
-      <item itemvalue="Spring Boot.ServerApp" />
-    </list>
-  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -157,65 +86,17 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="75895b57-a4ee-4126-b332-c6ce85a3f820" name="Changes" comment="" />
-      <created>1721896304959</created>
+      <changelist id="baf4dd27-21b5-4af7-9ff5-76b6e2e4e8ca" name="Changes" comment="" />
+      <created>1722843475827</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1721896304959</updated>
-      <workItem from="1721896305988" duration="12559000" />
-      <workItem from="1721955769017" duration="274000" />
-      <workItem from="1721956084892" duration="91000" />
-      <workItem from="1721956184066" duration="110000" />
-      <workItem from="1721956301351" duration="212000" />
-      <workItem from="1721956519215" duration="13145000" />
-      <workItem from="1721979845693" duration="9326000" />
-      <workItem from="1721990252957" duration="2932000" />
-      <workItem from="1721993774695" duration="2746000" />
-      <workItem from="1721997298106" duration="5407000" />
-      <workItem from="1722045521968" duration="7814000" />
-      <workItem from="1722221180180" duration="56000" />
-      <workItem from="1722305388828" duration="27481000" />
-      <workItem from="1722407533323" duration="1813000" />
-      <workItem from="1722409357052" duration="23046000" />
-      <workItem from="1722474288228" duration="33354000" />
-      <workItem from="1722522172944" duration="47000" />
-      <workItem from="1722560719964" duration="12593000" />
-      <workItem from="1722584360223" duration="11590000" />
-      <workItem from="1722607058730" duration="14000" />
-      <workItem from="1722607570836" duration="467000" />
-      <workItem from="1722651783817" duration="15808000" />
+      <updated>1722843475827</updated>
+      <workItem from="1722843477243" duration="18000" />
+      <workItem from="1722843500917" duration="23000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/noregret/Server/ProcessMsg.java</url>
-          <line>148</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-    <pin-to-top-manager>
-      <pinned-members>
-        <PinnedItemInfo parentTag="com.noregret.Server.pojo.Message" memberName="fromUser" />
-        <PinnedItemInfo parentTag="com.noregret.Server.pojo.Message" memberName="id" />
-      </pinned-members>
-    </pin-to-top-manager>
   </component>
 </project>
