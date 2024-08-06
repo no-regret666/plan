@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 @ChannelHandler.Sharable
 @Slf4j
 public class ServerHandler extends SimpleChannelInboundHandler<String> {
-    @Autowired private ProcessMsg processMsg;
+    @Autowired
+    private ProcessMsg processMsg;
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
@@ -27,7 +28,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        if(ProcessMsg.isExist(ctx)){
+        if (ProcessMsg.isExist(ctx)) {
             ProcessMsg.remove(ctx);
         }
     }

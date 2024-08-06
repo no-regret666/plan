@@ -10,7 +10,7 @@ public enum MsgType {
     MSG_DELETE_FRIEND, //删除好友
     MSG_OFFLINE, //离线
     MSG_PRIVATE_CHAT, //私聊
-    MSG_SAVE_MESSAGE, //存储消息
+    MSG_SAVE_MESSAGE1, //存储消息
     MSG_CREATE_GROUP, //建群
     MSG_GROUP_REQUEST, //加入群组申请
     MSG_FIND, //找回密码
@@ -22,5 +22,7 @@ public enum MsgType {
     MSG_BREAK_GROUP, //解散群组
     MSG_REMOVE_MEMBER, //移除成员
     MSG_ADD_MANAGER, //添加管理员
-    MSG_REMOVE_MANAGER //移除管理员
+    MSG_REMOVE_MANAGER, //移除管理员
+    MSG_GROUP_CHAT, //群聊
+    MSG_SAVE_MESSAGE2 //存储群聊消息
 }

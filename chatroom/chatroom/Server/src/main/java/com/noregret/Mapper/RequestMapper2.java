@@ -8,13 +8,13 @@ import org.apache.ibatis.annotations.Select;
 import java.util.List;
 
 @Mapper
-public interface Request2Mapper {
-    @Select("select from_user from request2 where group_name = #{groupName}")
+public interface RequestMapper2 {
+    @Select("select `from` from request2 where `to` = #{groupName}")
     List<String> selectRequest(String groupName);
 
-    @Delete("delete from request2 where from_user = #{fromUser} and group_name = #{groupName}")
+    @Delete("delete from request2 where `from` = #{fromUser} and `to` = #{groupName}")
     void deleteRequest(String fromUser, String groupName);
 
-    @Insert("insert into request2(group_name, from_user) values (#{groupName},#{fromUser})")
+    @Insert("insert into request2(`to`, `from`) values (#{groupName},#{fromUser})")
     void insertRequest(String fromUser, String groupName);
 }

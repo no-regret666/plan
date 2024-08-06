@@ -1,22 +1,18 @@
 package com.noregret;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-
-import java.util.Arrays;
+import java.io.Console;
+import java.io.IOException;
 
 public class test {
-    public static void main(String[] args) {
-        byte[] msg = "12{Hello,World!}".getBytes();
-        ByteBuf buf = Unpooled.compositeBuffer(msg.length);
-        buf.writeBytes(msg);
-        int i = 0;
-        while(i < msg.length) {
-            if(buf.getByte(i) == 0x7B){
-                System.out.println("true");
-            }
-            i++;
-        }
-        System.out.println("false");
+    public static String getPassword(){
+        Console console = System.console();
+        char[] password = console.readPassword();
+        return new String(password);
+    }
+
+    public static void main(String[] args) throws IOException{
+        System.out.println("请输入密码：");
+        String password = getPassword();
+        System.out.println("输入的密码为" + password);
     }
 }

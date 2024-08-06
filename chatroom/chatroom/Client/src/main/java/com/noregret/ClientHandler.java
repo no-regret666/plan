@@ -16,7 +16,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("Client received: " + msg);
+        //System.out.println("Client received: " + msg);
         String response = (String) msg;
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(response);
@@ -38,7 +38,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
             queue2.put(fromUsers);
         }
         else if(String.valueOf(MsgType.MSG_LIST_FRIEND).equals(type)){
-            String friends = node.get("friends").asText();
+            String friends = node.get("online").asText();
             queue2.put(friends);
         }
         else if(String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)){
@@ -48,7 +48,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                 String messages = node.get("messages").asText();
                 queue2.put(messages);
             }
-        }else if(String.valueOf(MsgType.MSG_SAVE_MESSAGE).equals(type)){
+        }else if(String.valueOf(MsgType.MSG_SAVE_MESSAGE1).equals(type)){
             String fromUser = node.get("fromUser").asText();
             String content = node.get("content").asText();
             String time = node.get("time").asText();
@@ -72,6 +72,16 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
         else if(String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST).equals(type)){
             String fromUsers = node.get("fromUsers").asText();
             queue2.put(fromUsers);
+        }
+        else if(String.valueOf(MsgType.MSG_GROUP_CHAT).equals(type)){
+            String messages = node.get("messages").asText();
+            queue2.put(messages);
+        }
+        else if(String.valueOf(MsgType.MSG_SAVE_MESSAGE2).equals(type)){
+            String content = node.get("content").asText();
+            String time = node.get("time").asText();
+            String from = node.get("from").asText();
+            System.out.println(time.substring(0,19) + " " + from + ":" + content);
         }
     }
 }

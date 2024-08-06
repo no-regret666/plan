@@ -8,9 +8,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import org.apache.commons.mail.HtmlEmail;
-import com.noregret.pojo.Message;
-import com.noregret.pojo.Member;
-import java.io.IOException;
+import com.noregret.pojo.*;
+import java.io.*;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -42,6 +41,7 @@ public class SendService {
                     break;
                 case 'c':
                     find();
+                    break;
                 case 'e':
                     System.exit(1);
             }
@@ -85,9 +85,9 @@ public class SendService {
     }
 
     public void register() throws InterruptedException {
-        System.out.println("请输入用户名:(不超过10位)");
+        System.out.println("请输入用户名:(不超过20位)");
         String username = sc.nextLine();
-        System.out.println("请输入密码:(不超过16位)");
+        System.out.println("请输入密码:(不超过20位)");
         String password = sc.nextLine();
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -229,17 +229,22 @@ public class SendService {
         send(node);
 
         String friends2 = (String) ClientHandler.queue2.take();
-        List<String> friends = objectMapper.readValue(friends2, new TypeReference<>() {
-        });
+        List<theFriend> friends = objectMapper.readValue(friends2, new TypeReference<>() {});
         if (!friends.isEmpty()) {
             int i = 1;
             HashMap<Integer, String> map = new HashMap<>();
             System.out.println("--------------------------");
             System.out.println(username + "的好友");
             System.out.println("--------------------------");
-            for (String friend : friends) {
-                System.out.println(i + "." + friend);
-                map.put(i, friend);
+            for (theFriend friend : friends) {
+                System.out.print(i + "." + friend.getName());
+                if(friend.getStatus() == 1) {
+                    System.out.println(" 在线");
+                }
+                else{
+                    System.out.println(" 离线");
+                }
+                map.put(i, friend.getName());
                 i++;
             }
             System.out.println("--------------------------");
@@ -300,9 +305,8 @@ public class SendService {
                 i++;
             }
             System.out.println("请输入你要处理的好友申请(序号):");
-            Integer num = sc.nextInt();
-            String fromUser = map.get(num);
-            sc.nextLine();
+            char c = sc.nextLine().charAt(0);
+            String fromUser = map.get(Character.getNumericValue(c));
             System.out.println("a.同意  b.拒绝");
             char choice = sc.nextLine().charAt(0);
             if (choice == 'a') {
@@ -369,13 +373,13 @@ public class SendService {
         while (true) {
             String content = sc.nextLine();
             Timestamp time = new Timestamp(System.currentTimeMillis());
-            System.out.println(time);
+            System.out.println(time.toString().substring(0, 19) + " " + username + ":" + content);
             node = objectMapper.createObjectNode();
             node.put("fromUser", username);
             node.put("toUser", friendName);
             node.put("content", content);
             node.put("time", time.toString());
-            node.put("type", String.valueOf(MsgType.MSG_SAVE_MESSAGE));
+            node.put("type", String.valueOf(MsgType.MSG_SAVE_MESSAGE1));
             send(node);
 
             if ("q".equals(content)) {
@@ -386,7 +390,7 @@ public class SendService {
     }
 
     public void createGroup(String username) throws InterruptedException {
-        System.out.println("请输入群组名称(不超过10位):");
+        System.out.println("请输入群组名称(不超过20位):");
         String groupName = sc.nextLine();
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
@@ -404,7 +408,7 @@ public class SendService {
     }
 
     public void addGroup(String username) throws InterruptedException {
-        System.out.println("请输入你想要加入群聊的名称:");
+        System.out.println("请输入你想要加入群组的名称:");
         String groupName = sc.nextLine();
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
@@ -493,6 +497,9 @@ public class SendService {
                 case 'a':
                     listMember(username, groupName, role, members);
                     break;
+                case 'b':
+                    groupChat(username,groupName);
+                    break;
                 case 'c':
                     quitGroup(username, groupName);
                     listGroup(username);
@@ -507,6 +514,42 @@ public class SendService {
                 case 'q':
                     listGroup(username);
                     return;
+            }
+        }
+    }
+
+    public void groupChat(String username, String groupName) throws InterruptedException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("member", username);
+        node.put("type", String.valueOf(MsgType.MSG_GROUP_CHAT));
+        send(node);
+
+        String messages = (String) ClientHandler.queue2.take();
+        List<Message> messages2 = objectMapper.readValue(messages, new TypeReference<>() {
+        });
+        if(!messages2.isEmpty()) {
+            for (Message message : messages2) {
+                System.out.println(message.getTime() + " " + message.getFrom() + ":" + message.getContent());
+            }
+        }
+
+        System.out.println("开始聊天!(按q退出)");
+        while (true) {
+            String content = sc.nextLine();
+            Timestamp time = new Timestamp(System.currentTimeMillis());
+            System.out.println(time.toString().substring(0,19) + " " + username + ":" + content);
+            node = objectMapper.createObjectNode();
+            node.put("from", username);
+            node.put("to", groupName);
+            node.put("content", content);
+            node.put("time", time.toString());
+            node.put("type", String.valueOf(MsgType.MSG_SAVE_MESSAGE2));
+            send(node);
+
+            if ("q".equals(content)) {
+                break;
             }
         }
     }
@@ -540,9 +583,8 @@ public class SendService {
                 i++;
             }
             System.out.println("请输入你要处理的加群申请(序号):");
-            Integer num = sc.nextInt();
-            String fromUser = map.get(num);
-            sc.nextLine();
+            char c = sc.nextLine().charAt(0);
+            String fromUser = map.get(Character.getNumericValue(c));
             System.out.println("a.同意  b.拒绝");
             char choice = sc.nextLine().charAt(0);
             if (choice == 'a') {
@@ -619,24 +661,23 @@ public class SendService {
             switch (c) {
                 case 'a':
                     System.out.println("请输入你要移除的成员序号:");
-                    num = sc.nextInt();
-                    sc.nextLine();
-                    if (role == 2 && (map2.get(map.get(num)) == 1 || map2.get(map.get(num)) == 2)) {
+                    num = sc.nextLine().charAt(0);
+                    int num2 = Character.getNumericValue(num);
+                    if (role == 2 && (map2.get(map.get(num2)) == 1 || map2.get(map.get(num2)) == 2)) {
                         System.out.println("管理员只能移除普通成员");
+                        break;
                     }
                     removeMember(groupName, map.get(num));
                     break;
                 case 'b':
                     System.out.println("请输入你要添加管理员的成员序号:");
-                    num = sc.nextInt();
-                    sc.nextLine();
-                    addManager(groupName, map.get(num));
+                    num = sc.nextLine().charAt(0);
+                    addManager(groupName, map.get(Character.getNumericValue(num)));
                     break;
                 case 'c':
                     System.out.println("请输入你要取消管理员的成员序号:");
-                    num = sc.nextInt();
-                    sc.nextLine();
-                    removeManager(groupName, map.get(num));
+                    num = sc.nextLine().charAt(0);
+                    removeManager(groupName, map.get(Character.getNumericValue(num)));
                     break;
                 case 'q':
                     groupMenu(username, groupName);
@@ -649,7 +690,7 @@ public class SendService {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("groupName", groupName);
-        node.put("memberName", memberName);
+        node.put("member", memberName);
         node.put("type", String.valueOf(MsgType.MSG_REMOVE_MEMBER));
         send(node);
     }
@@ -658,7 +699,7 @@ public class SendService {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("groupName", groupName);
-        node.put("memberName", memberName);
+        node.put("member", memberName);
         node.put("type", String.valueOf(MsgType.MSG_ADD_MANAGER));
         send(node);
     }
@@ -667,8 +708,9 @@ public class SendService {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("groupName", groupName);
-        node.put("memberName", memberName);
+        node.put("member", memberName);
         node.put("type", String.valueOf(MsgType.MSG_REMOVE_MANAGER));
         send(node);
     }
+
 }

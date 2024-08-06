@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Request1 {
-    private int id;
-    private String fromUser;
-    private String toUser;
+public class theFriend {
+    String name;
+    Integer status; //是否在线，1:在线，0:不在线
 }
