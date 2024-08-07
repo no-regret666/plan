@@ -2,10 +2,14 @@ package com.noregret;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.io.RandomAccessFile;
 
 @Component
 @ChannelHandler.Sharable
@@ -20,10 +24,19 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("Server Received: " + msg);
-        processMsg.init(ctx);
-        String response = (String) msg;
-        processMsg.sendResponse(response);
+//        if (msg instanceof DefaultFileRegion fileRegion) {
+//            long position = fileRegion.position();
+//            File file = new File("received_file.txt");
+//            try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+//                raf.seek(position);
+//                fileRegion.transferTo(raf.getChannel(), position);
+//            }
+//        } else {
+            System.out.println("Server Received: " + msg);
+            processMsg.init(ctx);
+            String response = (String) msg;
+            processMsg.sendResponse(response);
+       // }
     }
 
     @Override

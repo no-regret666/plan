@@ -4,6 +4,7 @@ import com.noregret.Pojo.Message;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -18,4 +19,6 @@ public interface MessageMapper1 {
             " or (`from` = #{name2} and `to` = #{name1})")
     List<Message> privateChat(String name1,String name2);
 
+    @Update("update message1 set status = 'read' where status = 'unread' ")
+    void update();
 }
