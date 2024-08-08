@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Request1 {
+public class Request {
     private int id;
-    private String fromUser;
-    private String toUser;
+    private String from;
+    private String to;
+    private int type;
 }

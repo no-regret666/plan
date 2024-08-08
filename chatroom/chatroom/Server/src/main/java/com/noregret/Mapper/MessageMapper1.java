@@ -21,4 +21,7 @@ public interface MessageMapper1 {
 
     @Update("update message1 set status = 'read' where status = 'unread' ")
     void update();
+
+    @Select("select `from` from message1 where `to` = #{to} and status = 'unread'")
+    List<String> getFriends(String to);
 }

@@ -24,19 +24,10 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-//        if (msg instanceof DefaultFileRegion fileRegion) {
-//            long position = fileRegion.position();
-//            File file = new File("received_file.txt");
-//            try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
-//                raf.seek(position);
-//                fileRegion.transferTo(raf.getChannel(), position);
-//            }
-//        } else {
             System.out.println("Server Received: " + msg);
             processMsg.init(ctx);
             String response = (String) msg;
             processMsg.sendResponse(response);
-       // }
     }
 
     @Override

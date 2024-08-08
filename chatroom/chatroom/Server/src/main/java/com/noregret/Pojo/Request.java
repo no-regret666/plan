@@ -11,4 +11,5 @@ public class Request {
     private int id;
     private String from;
     private String to;
+    private int type;
 }

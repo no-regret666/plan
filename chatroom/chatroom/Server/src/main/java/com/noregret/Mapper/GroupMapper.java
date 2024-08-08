@@ -31,4 +31,7 @@ public interface GroupMapper {
 
     @Update("update `group` set role = #{role} where group_name = #{groupName} and member = #{member}")
     void modifyManager(String groupName, String member, int role);
+
+    @Select("select member from `group` where group_name = #{groupName} and role in(1,2)")
+    List<String> getManagers(String groupName);
 }

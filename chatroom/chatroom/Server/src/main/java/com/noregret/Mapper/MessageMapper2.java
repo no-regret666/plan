@@ -1,6 +1,7 @@
 package com.noregret.Mapper;
 
 import com.noregret.Pojo.Message;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -16,4 +17,7 @@ public interface MessageMapper2 {
 
     @Select("select * from message2 where `to` =  #{to}")
     List<Message> groupChat(String to);
+
+    @Delete("delete from message2 where `to` = #{to}")
+    void breakGroup(String to);
 }
