@@ -106,13 +106,16 @@ public class ProcessMsg {
                 if (friendMapper.selectFriend2(username, friendName) == null) {
                     node.put("code", 100); //发送好友申请
                     requestMapper.insertRequest(username, friendName, 1);
+                    if (isExist(friendName)) {
+                        ObjectNode node1 = mapper.createObjectNode();
+                        node1.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                        node1.put("username", friendName);
+                        node1.put("code", 1);
+                        ChannelHandlerContext ctx = online1.get(friendName);
+                        send(node1, ctx);
+                    }
                 } else {
                     node.put("code", 300); //已添加该好友
-                }
-                if (isExist(friendName)) {
-                    ChannelHandlerContext ctx = online1.get(friendName);
-                    Request request = new Request(0, username, friendName, 1);
-                    ctx.writeAndFlush(request);
                 }
             }
             send(node, channel);
@@ -208,31 +211,37 @@ public class ProcessMsg {
                 privateChatting.remove(fromUser);
                 return;
             }
-            if (!privateChatting.containsKey(toUser)) {
+            if(!isExist(toUser)){
                 messageMapper1.insert(fromUser, toUser, content, time2, "unread");
-            } else {
-                if (privateChatting.get(toUser).equals(fromUser)) {
-                    ChannelHandlerContext ctx = online1.get(toUser);
+            }
+            else{
+                ChannelHandlerContext ctx = online1.get(toUser);
+                if (privateChatting.containsKey(toUser) && privateChatting.get(toUser).equals(fromUser)) {
                     send(node, ctx);
                     messageMapper1.insert(fromUser, toUser, content, time2, "read");
-                } else {
+                }
+                else{
+                    ObjectNode node1 = mapper.createObjectNode();
+                    node1.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                    node1.put("fromUser", fromUser);
+                    node1.put("code",3);
+                    send(node1, ctx);
                     messageMapper1.insert(fromUser, toUser, content, time2, "unread");
                 }
             }
-        }else if(String.valueOf(MsgType.MSG_SEND_FILE).equals(type)){
+        } else if (String.valueOf(MsgType.MSG_SEND_FILE).equals(type)) {
             String from = msg.get("from").asText();
             String to = msg.get("to").asText();
             String file = msg.get("file").asText();
             ObjectNode node = mapper.createObjectNode();
             node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
-            node.put("from",from);
-            node.put("file",file);
-            if(isExist(to)){
+            node.put("from", from);
+            node.put("file", file);
+            if (isExist(to)) {
                 ChannelHandlerContext ctx = online1.get(to);
                 send(node, ctx);
             }
-        }
-        else if (String.valueOf(MsgType.MSG_CREATE_GROUP).equals(type)) {
+        } else if (String.valueOf(MsgType.MSG_CREATE_GROUP).equals(type)) {
             String groupName = msg.get("groupName").asText();
             String member = msg.get("member").asText();
 
@@ -255,12 +264,18 @@ public class ProcessMsg {
             } else {
                 requestMapper.insertRequest(from, to, 2);
                 node.put("code", 200); //已发送加群申请
-                List<String> managers = groupMapper.getManagers(to);
-                for (String manager : managers) {
-                    if (isExist(manager)) {
-                        ChannelHandlerContext ctx = online1.get(manager);
-                        Request request = new Request(0, from, to, 2);
-                        ctx.writeAndFlush(request);
+                List<Member> members = groupMapper.getMembers(to);
+                for (Member member : members) {
+                    if (member.getRole() == 1 || member.getRole() == 2) {
+                        if (isExist(member.getMember())) {
+                            ObjectNode node1 = mapper.createObjectNode();
+                            node1.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                            node1.put("from", from);
+                            node1.put("to", to);
+                            node1.put("code", 2);
+                            ChannelHandlerContext ctx = online1.get(member.getMember());
+                            send(node1, ctx);
+                        }
                     }
                 }
             }
@@ -345,20 +360,25 @@ public class ProcessMsg {
                 return;
             }
 
-            messageMapper2.insert(from, to, content, time, "read");
+            messageMapper2.insert(from, to, content, time, null);
 
             //遍历群友并转发
             List<String> members = groupMapper.getMemberNames(to);
             if (!members.isEmpty()) {
                 for (String member : members) {
-                    if(member.equals(from)){
+                    if (member.equals(from)) {
                         break;
                     }
-                    if (groupChatting.containsKey(member)) {
-                        if (groupChatting.get(member).equals(to)) {
-                            ChannelHandlerContext ctx = online1.get(member);
-                            send(node, ctx);
-                        }
+                    ChannelHandlerContext ctx = online1.get(member);
+                    if (groupChatting.containsKey(member) && groupChatting.get(member).equals(to)) {
+                        send(node, ctx);
+                    }
+                    else{
+                        ObjectNode node1 = mapper.createObjectNode();
+                        node1.put("group",to);
+                        node1.put("type",String.valueOf(MsgType.MSG_NOTICE));
+                        node1.put("code",4);
+                        send(node1, ctx);
                     }
                 }
             }

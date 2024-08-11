@@ -11,6 +11,8 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 @Component
 public class Client {
     public void init(String host,int port){
@@ -34,9 +36,6 @@ public class Client {
             //连接服务器
             Channel channel = bootstrap.connect(host,port).sync().channel();
             channel.config().setOption(ChannelOption.SO_SNDBUF,65535);
-            SendService sendService = new SendService(channel);
-            sendService.menu();
-
             channel.closeFuture().sync();
 
         } catch (Exception e) {

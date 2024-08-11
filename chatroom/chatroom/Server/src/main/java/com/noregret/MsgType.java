@@ -6,6 +6,7 @@ public enum MsgType {
     MSG_HOME, //个人主页
     MSG_LIST_FRIEND, //好友列表
     MSG_FRIEND_REQUEST, //好友申请
+    MSG_NOTICE, //实时通知(1.好友申请 2.加群申请 3.私聊 4.群聊)
     MSG_LIST_FRIEND_REQUEST, //好友申请列表
     MSG_FRIEND_RESPONSE, //处理好友申请
     MSG_DELETE_FRIEND, //删除好友

@@ -12,7 +12,6 @@ import com.noregret.pojo.*;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.*;
@@ -26,13 +25,13 @@ public class SendService {
     }
 
     public void menu() throws InterruptedException, IOException {
-        System.out.println("-----------------------------------------");
-        System.out.println("              欢迎进入聊天室                ");
-        System.out.println("-----------------------------------------");
-        System.out.println("           a.登录       b.注册             ");
-        System.out.println("          c.找回密码     d.注销             ");
-        System.out.println("                 e.退出                    ");
         while (true) {
+            System.out.println("-----------------------------------------");
+            System.out.println("              欢迎进入聊天室                ");
+            System.out.println("-----------------------------------------");
+            System.out.println("           a.登录       b.注册             ");
+            System.out.println("          c.找回密码     d.注销             ");
+            System.out.println("                 e.退出                    ");
             System.out.println("------------------------------------------");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
@@ -166,53 +165,53 @@ public class SendService {
     }
 
     public void personHome(String username) throws InterruptedException, IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode node = objectMapper.createObjectNode();
-        node.put("username", username);
-        node.put("type", String.valueOf(MsgType.MSG_HOME));
-        send(node);
-
-        String fromUsers2 = (String) ClientHandler.queue2.take();
-        List<String> fromUsers = objectMapper.readValue(fromUsers2, new TypeReference<>() {
-        });
-        String requests2 = (String) ClientHandler.queue2.take();
-        List<Request> requests = objectMapper.readValue(requests2, new TypeReference<>() {
-        });
-        String friends2 = (String) ClientHandler.queue2.take();
-        List<String> friends = objectMapper.readValue(friends2, new TypeReference<>() {
-        });
-        System.out.println("-------------------------------------");
-        System.out.println("这里是 " + username + " 的个人主页!");
-        System.out.println("-------------------------------------");
-        System.out.println("a.添加好友");
-        System.out.println("b.好友列表");
-        System.out.println("c.处理好友申请");
-        System.out.println("d.创建群组");
-        System.out.println("e.加入群组");
-        System.out.println("f.群组列表");
-        System.out.println("g.处理加群申请");
-        System.out.println("q.退出登录");
-        System.out.println();
-        if (!fromUsers.isEmpty()) {
-            for (String fromUser : fromUsers) {
-                System.out.println(fromUser + "申请添加为好友!");
-            }
-        }
-        if (!requests.isEmpty()) {
-            for (Request request : requests) {
-                System.out.println(request.getFrom() + "申请加入" + request.getTo() + "群组!");
-            }
-        }
-        HashMap<String, Integer> map = new HashMap<>();
-        if (!friends.isEmpty()) {
-            for (String friend : friends) {
-                if (!map.containsKey(friend)) {
-                    System.out.println(friend + "发送了新消息!");
-                }
-                map.put(friend, map.getOrDefault(friend, 0) + 1);
-            }
-        }
         while (true) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("username", username);
+            node.put("type", String.valueOf(MsgType.MSG_HOME));
+            send(node);
+
+            String fromUsers2 = (String) ClientHandler.queue2.take();
+            List<String> fromUsers = objectMapper.readValue(fromUsers2, new TypeReference<>() {
+            });
+            String requests2 = (String) ClientHandler.queue2.take();
+            List<Request> requests = objectMapper.readValue(requests2, new TypeReference<>() {
+            });
+            String friends2 = (String) ClientHandler.queue2.take();
+            List<String> friends = objectMapper.readValue(friends2, new TypeReference<>() {
+            });
+            System.out.println("-------------------------------------");
+            System.out.println("这里是 " + username + " 的个人主页!");
+            System.out.println("-------------------------------------");
+            System.out.println("a.添加好友");
+            System.out.println("b.好友列表");
+            System.out.println("c.处理好友申请");
+            System.out.println("d.创建群组");
+            System.out.println("e.加入群组");
+            System.out.println("f.群组列表");
+            System.out.println("g.处理加群申请");
+            System.out.println("q.退出登录");
+            System.out.println();
+            if (!fromUsers.isEmpty()) {
+                for (String fromUser : fromUsers) {
+                    System.out.println(fromUser + "申请添加为好友!");
+                }
+            }
+            if (!requests.isEmpty()) {
+                for (Request request : requests) {
+                    System.out.println(request.getFrom() + "申请加入" + request.getTo() + "群组!");
+                }
+            }
+            HashMap<String, Integer> map = new HashMap<>();
+            if (!friends.isEmpty()) {
+                for (String friend : friends) {
+                    if (!map.containsKey(friend)) {
+                        System.out.println(friend + "发送了新消息!");
+                    }
+                    map.put(friend, map.getOrDefault(friend, 0) + 1);
+                }
+            }
             System.out.println("--------------------------------------");
             System.out.println("请输入选择:");
             Scanner sc = new Scanner(System.in);
@@ -308,15 +307,15 @@ public class SendService {
     }
 
     public void friendMenu(String username, String friendName) throws InterruptedException, IOException {
-        System.out.println("----------------------------");
-        System.out.println("好友 " + friendName);
-        System.out.println("----------------------------");
-        System.out.println("a.私聊");
-        System.out.println("b.发送文件");
-        System.out.println("c.屏蔽该好友");
-        System.out.println("d.删除该好友");
-        System.out.println("q.返回好友列表");
         while (true) {
+            System.out.println("----------------------------");
+            System.out.println("好友 " + friendName);
+            System.out.println("----------------------------");
+            System.out.println("a.私聊");
+            System.out.println("b.发送文件");
+            System.out.println("c.屏蔽该好友");
+            System.out.println("d.删除该好友");
+            System.out.println("q.返回好友列表");
             System.out.println("----------------------------");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
@@ -451,13 +450,13 @@ public class SendService {
         ObjectNode node = objectMapper.createObjectNode();
         node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
 
-        node.put("from",username);
-        node.put("to",friendName);
+        node.put("from", username);
+        node.put("to", friendName);
         while (true) {
             System.out.println("请输入你要发送的文件:(按q返回上层)");
             String fileURL = sc.nextLine();
-            if(fileURL.equals("q")){
-                friendMenu(username,friendName);
+            if (fileURL.equals("q")) {
+                friendMenu(username, friendName);
                 return;
             }
             byte[] file = Files.readAllBytes(Paths.get(fileURL));
@@ -539,36 +538,36 @@ public class SendService {
     }
 
     public void groupMenu(String username, String groupName) throws InterruptedException, IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode node = objectMapper.createObjectNode();
-        node.put("groupName", groupName);
-        node.put("type", String.valueOf(MsgType.MSG_GROUP_MEMBER));
-        send(node);
-
-        String members2 = (String) ClientHandler.queue2.take();
-        List<Member> members = objectMapper.readValue(members2, new TypeReference<>() {
-        });
-        int role = 0;
-        for (Member member : members) {
-            if (member.getMember().equals(username)) {
-                role = member.getRole();
-            }
-        }
-        System.out.println("-----------------------------");
-        System.out.println("群组 " + groupName);
-        System.out.println("-----------------------------");
-        System.out.println("a.群成员");
-        System.out.println("b.群聊");
-        System.out.println("c.发送文件");
-        if (role == 2 || role == 3) {
-            System.out.println("d.退出群组");
-        } else {
-            if (role == 1) {
-                System.out.println("d.解散群组");
-            }
-        }
-        System.out.println("q.返回群组列表");
         while (true) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("groupName", groupName);
+            node.put("type", String.valueOf(MsgType.MSG_GROUP_MEMBER));
+            send(node);
+
+            String members2 = (String) ClientHandler.queue2.take();
+            List<Member> members = objectMapper.readValue(members2, new TypeReference<>() {
+            });
+            int role = 0;
+            for (Member member : members) {
+                if (member.getMember().equals(username)) {
+                    role = member.getRole();
+                }
+            }
+            System.out.println("-----------------------------");
+            System.out.println("群组 " + groupName);
+            System.out.println("-----------------------------");
+            System.out.println("a.群成员");
+            System.out.println("b.群聊");
+            System.out.println("c.发送文件");
+            if (role == 2 || role == 3) {
+                System.out.println("d.退出群组");
+            } else {
+                if (role == 1) {
+                    System.out.println("d.解散群组");
+                }
+            }
+            System.out.println("q.返回群组列表");
             System.out.println("------------------------------");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
@@ -608,7 +607,7 @@ public class SendService {
         });
         if (!messages2.isEmpty()) {
             for (Message message : messages2) {
-                System.out.println(message.getTime().toString().substring(0,19) + " " + message.getFrom() + ":" + message.getContent());
+                System.out.println(message.getTime().toString().substring(0, 19) + " " + message.getFrom() + ":" + message.getContent());
             }
         }
 
@@ -642,37 +641,43 @@ public class SendService {
     }
 
     public void groupRequest(String username) throws InterruptedException, JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode node = objectMapper.createObjectNode();
-        node.put("username", username);
-        node.put("type", String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST));
-        send(node);
+        while(true) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("username", username);
+            node.put("type", String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST));
+            send(node);
 
-        String requests2 = (String) ClientHandler.queue2.take();
-        List<Request> requests = objectMapper.readValue(requests2, new TypeReference<>() {
-        });
-        if (!requests.isEmpty()) {
-            int i = 1;
-            HashMap<Integer, Request> map = new HashMap<>();
-            for (Request request : requests) {
-                System.out.println(i + "." + request.getFrom() + "申请加入" + request.getTo() + "群组!");
-                map.put(i, request);
-                i++;
+            String requests2 = (String) ClientHandler.queue2.take();
+            List<Request> requests = objectMapper.readValue(requests2, new TypeReference<>() {
+            });
+            if (!requests.isEmpty()) {
+                int i = 1;
+                HashMap<Integer, Request> map = new HashMap<>();
+                for (Request request : requests) {
+                    System.out.println(i + "." + request.getFrom() + "申请加入" + request.getTo() + "群组!");
+                    map.put(i, request);
+                    i++;
+                }
+                System.out.println("请输入你要处理的加群申请序号:(按q退出)");
+                char c = sc.next().charAt(0);
+                sc.nextLine();
+                if(c == 'q'){
+                    return;
+                }
+                Request request = map.get(Character.getNumericValue(c));
+                System.out.println("a.同意  b.拒绝");
+                char c2 = sc.next().charAt(0);
+                sc.nextLine();
+                if (c2 == 'a') {
+                    groupResponse(request.getFrom(), request.getTo(), 0);
+                } else if (c2 == 'b') {
+                    groupResponse(request.getFrom(), request.getTo(), 1);
+                }
+            } else {
+                System.out.println("无新的加群申请!");
+                return;
             }
-            System.out.println("请输入你要处理的加群申请序号:");
-            char c = sc.next().charAt(0);
-            sc.nextLine();
-            Request request = map.get(Character.getNumericValue(c));
-            System.out.println("a.同意  b.拒绝");
-            char c2 = sc.next().charAt(0);
-            sc.nextLine();
-            if (c2 == 'a') {
-                groupResponse(request.getFrom(), request.getTo(), 0);
-            } else if (c2 == 'b') {
-                groupResponse(request.getFrom(), request.getTo(), 1);
-            }
-        } else {
-            System.out.println("无新的加群申请!");
         }
     }
 
@@ -696,44 +701,46 @@ public class SendService {
     }
 
     public void listMember(String username, String groupName, int role, List<Member> members) throws IOException, InterruptedException {
+        System.out.println("----------------------------");
         System.out.println("群组 " + groupName + " 成员");
+        System.out.println("----------------------------");
         int i = 1, j = 1, k = 1;
         HashMap<Integer, String> map = new HashMap<>();
         HashMap<String, Integer> map2 = new HashMap<>(); //群成员->身份
-        for (Member member : members) {
-            map.put(k, member.getMember());
-            map2.put(member.getMember(), member.getRole());
-            if (member.getRole() == 1) {
-                System.out.println("群主:");
-                System.out.println(k + "." + member.getMember());
-            } else if (member.getRole() == 2) {
-                if (i == 1) {
-                    System.out.println("管理员:");
-                    System.out.println(k + "." + member.getMember());
-                } else {
-                    System.out.println(k + "." + member.getMember());
-                }
-                i++;
-            } else {
-                if (j == 1) {
-                    System.out.println("普通成员:");
-                    System.out.println(k + "." + member.getMember());
-                } else {
-                    System.out.println(k + "." + member.getMember());
-                }
-                j++;
-            }
-            k++;
-        }
-        if (role == 1 || role == 2) {
-            System.out.println("a.移除成员");
-        }
-        if (role == 1) {
-            System.out.println("b.设置管理员");
-            System.out.println("c.取消管理员");
-        }
-        System.out.println("q.返回上层");
         while (true) {
+            for (Member member : members) {
+                map.put(k, member.getMember());
+                map2.put(member.getMember(), member.getRole());
+                if (member.getRole() == 1) {
+                    System.out.println("群主:");
+                    System.out.println(k + "." + member.getMember());
+                } else if (member.getRole() == 2) {
+                    if (i == 1) {
+                        System.out.println("管理员:");
+                        System.out.println(k + "." + member.getMember());
+                    } else {
+                        System.out.println(k + "." + member.getMember());
+                    }
+                    i++;
+                } else {
+                    if (j == 1) {
+                        System.out.println("普通成员:");
+                        System.out.println(k + "." + member.getMember());
+                    } else {
+                        System.out.println(k + "." + member.getMember());
+                    }
+                    j++;
+                }
+                k++;
+            }
+            if (role == 1 || role == 2) {
+                System.out.println("a.移除成员");
+            }
+            if (role == 1) {
+                System.out.println("b.设置管理员");
+                System.out.println("c.取消管理员");
+            }
+            System.out.println("q.返回上层");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
             sc.nextLine();
