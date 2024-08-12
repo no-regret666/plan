@@ -1,10 +1,7 @@
 package com.noregret.Mapper;
 
 import com.noregret.Pojo.Message;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -24,4 +21,10 @@ public interface MessageMapper1 {
 
     @Select("select `from` from message1 where `to` = #{to} and status = 'unread'")
     List<String> getFriends(String to);
+
+    @Select("select count(*) from message1 where `from` = #{from} and `to` = #{to}")
+    Integer count(String from, String to);
+
+    @Delete("delete from message1 where `from` = #{from} and `to` = #{to}")
+    void delete(String from, String to);
 }

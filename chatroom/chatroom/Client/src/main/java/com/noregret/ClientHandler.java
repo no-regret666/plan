@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,6 +29,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+//        System.out.println("Client received: " + msg);
         String response = (String) msg;
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(response);
@@ -52,17 +54,17 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             int code = node.get("code").asInt();
             if (code == 1) {
                 String username = node.get("username").asText();
-                System.out.println(username + "申请添加为好友!");
+                System.out.println(getColoredString(33, 1, username + " 申请添加为好友!"));
             } else if (code == 2) {
                 String from = node.get("from").asText();
                 String to = node.get("to").asText();
-                System.out.println(from + "申请加入" + to + "群组!");
+                System.out.println(getColoredString(33, 1, from + " 申请加入 " + to + " 群组!"));
             } else if (code == 3) {
                 String fromUser = node.get("fromUser").asText();
-                System.out.println(fromUser + "发来了新消息!");
-            }else if (code == 4) {
+                System.out.println(getColoredString(33, 1, fromUser + " 发来了新消息!"));
+            } else if (code == 4) {
                 String group = node.get("group").asText();
-                System.out.println(group + "有新消息!");
+                System.out.println(getColoredString(33, 1, group + " 有新消息!"));
             }
         } else if (String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST).equals(type)) {
             String fromUsers = node.get("fromUsers").asText();
@@ -71,17 +73,18 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             String friends = node.get("online").asText();
             queue2.put(friends);
         } else if (String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)) {
-            int code = node.get("code").asInt();
-            queue.put(code);
-            if (code == 200) {
-                String messages = node.get("messages").asText();
-                queue2.put(messages);
-            }
+            int status = node.get("status").asInt();
+            queue.put(status);
+            String messages = node.get("messages").asText();
+            queue2.put(messages);
         } else if (String.valueOf(MsgType.MSG_SEND_MESSAGE1).equals(type)) {
             String fromUser = node.get("fromUser").asText();
             String content = node.get("content").asText();
             String time = node.get("time").asText();
             System.out.println(time.substring(0, 19) + " " + fromUser + ":" + content);
+        } else if (String.valueOf(MsgType.MSG_FRIEND_MENU).equals(type)) {
+            int status = node.get("status").asInt();
+            queue.put(status);
         } else if (String.valueOf(MsgType.MSG_CREATE_GROUP).equals(type)) {
             int code = node.get("code").asInt();
             queue.put(code);
@@ -91,13 +94,19 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         } else if (String.valueOf(MsgType.MSG_LIST_GROUP).equals(type)) {
             String groups = node.get("groups").asText();
             queue2.put(groups);
-        } else if (String.valueOf(MsgType.MSG_GROUP_MEMBER).equals(type)) {
+        }else if(String.valueOf(MsgType.MSG_MEMBER_ROLE).equals(type)){
+            int role = node.get("role").asInt();
+            queue.put(role);
+        }
+        else if (String.valueOf(MsgType.MSG_GROUP_MEMBER).equals(type)) {
             String members = node.get("members").asText();
             queue2.put(members);
         } else if (String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST).equals(type)) {
             String requests = node.get("requests").asText();
             queue2.put(requests);
         } else if (String.valueOf(MsgType.MSG_GROUP_CHAT).equals(type)) {
+            int status = node.get("status").asInt();
+            queue.put(status);
             String messages = node.get("messages").asText();
             queue2.put(messages);
         } else if (String.valueOf(MsgType.MSG_SEND_MESSAGE2).equals(type)) {
@@ -112,6 +121,9 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 fos.write(base64File);
             }
         }
-        //       }
+    }
+
+    public static String getColoredString(int color, int fontType, String content) {
+        return String.format("\033[%d;%dm%s\033[0m", color, fontType, content);
     }
 }

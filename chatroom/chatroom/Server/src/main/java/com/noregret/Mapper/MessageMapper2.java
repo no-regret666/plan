@@ -20,4 +20,10 @@ public interface MessageMapper2 {
 
     @Delete("delete from message2 where `to` = #{to}")
     void breakGroup(String to);
+
+    @Select("select count(*) from message2 where `to` = #{to}")
+    Integer count(String to);
+
+    @Delete("delete from message2 where `to` = #{to}")
+    void delete(String to);
 }

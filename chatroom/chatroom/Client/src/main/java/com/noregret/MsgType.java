@@ -17,7 +17,8 @@ public enum MsgType {
     MSG_GROUP_REQUEST, //加入群组申请
     MSG_FIND, //找回密码
     MSG_LIST_GROUP, //群组列表
-    MSG_GROUP_MEMBER, //获取群成员及身份
+    MSG_MEMBER_ROLE, //获取群内身份
+    MSG_GROUP_MEMBER, //群成员列表
     MSG_QUIT_GROUP, //退出群组
     MSG_LIST_GROUP_REQUEST, //加群申请列表
     MSG_GROUP_RESPONSE, //处理加群申请
@@ -27,5 +28,10 @@ public enum MsgType {
     MSG_REMOVE_MANAGER, //移除管理员
     MSG_GROUP_CHAT, //群聊
     MSG_SEND_MESSAGE2, //群聊消息
-    MSG_SEND_FILE //发送文件
+    MSG_SEND_FILE, //发送文件
+    MSG_BLOCK, //屏蔽
+    MSG_UNBLOCK, //取消屏蔽
+    MSG_FRIEND_MENU, //好友菜单
+    MSG_BLOCK_MEMBER, //群禁言
+    MSG_UNBLOCK_MEMBER //解除禁言
 }

@@ -280,7 +280,7 @@ public class SendService {
             int i = 1;
             HashMap<Integer, String> map = new HashMap<>();
             System.out.println("--------------------------");
-            System.out.println(username + "的好友");
+            System.out.println(username + " 的好友");
             System.out.println("--------------------------");
             for (theFriend friend : friends) {
                 System.out.print(i + "." + friend.getName());
@@ -308,12 +308,27 @@ public class SendService {
 
     public void friendMenu(String username, String friendName) throws InterruptedException, IOException {
         while (true) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("username", username);
+            node.put("friendName", friendName);
+            node.put("type", String.valueOf(MsgType.MSG_FRIEND_MENU));
+            send(node);
+
+            int status = ClientHandler.queue.take();
             System.out.println("----------------------------");
             System.out.println("好友 " + friendName);
+            if (status == 1) {
+                System.out.println("(已屏蔽)");
+            }
             System.out.println("----------------------------");
             System.out.println("a.私聊");
             System.out.println("b.发送文件");
-            System.out.println("c.屏蔽该好友");
+            if (status == 0) {
+                System.out.println("c.屏蔽该好友");
+            } else if (status == 1) {
+                System.out.println("c.取消屏蔽");
+            }
             System.out.println("d.删除该好友");
             System.out.println("q.返回好友列表");
             System.out.println("----------------------------");
@@ -326,6 +341,13 @@ public class SendService {
                     break;
                 case 'b':
                     sendFile(username, friendName);
+                    break;
+                case 'c':
+                    if (status == 0) {
+                        block(username, friendName);
+                    } else if (status == 1) {
+                        unblock(username, friendName);
+                    }
                     break;
                 case 'd':
                     deleteFriend(username, friendName);
@@ -408,40 +430,51 @@ public class SendService {
         node.put("type", String.valueOf(MsgType.MSG_PRIVATE_CHAT));
         send(node);
 
-        int code = ClientHandler.queue.take();
-        if (code == 100) {
-            System.out.println("你与对方还不是好友!");
-            return;
-        } else if (code == 200) {
-            String messages2 = (String) ClientHandler.queue2.take();
-            List<Message> messages = objectMapper.readValue(messages2, new TypeReference<>() {
-            });
-            if (!messages.isEmpty()) {
-                boolean print = false;
-                for (Message message : messages) {
-                    if (message.getStatus().toString().equals("unread") && !print) {
-                        System.out.println("新消息:");
-                        print = true;
-                    }
-                    System.out.println(message.getTime().toString().substring(0, 19) + " " + message.getFrom() + ":" + message.getContent());
+        int status = ClientHandler.queue.take();
+        String messages2 = (String) ClientHandler.queue2.take();
+        List<Message> messages = objectMapper.readValue(messages2, new TypeReference<>() {
+        });
+        if (!messages.isEmpty()) {
+            boolean print = false;
+            for (Message message : messages) {
+                if (message.getStatus().toString().equals("unread") && !print) {
+                    System.out.println("新消息:");
+                    print = true;
                 }
+                System.out.println(message.getTime().toString().substring(0, 19) + " " + message.getFrom() + ":" + message.getContent());
             }
         }
-        System.out.println("开始聊天!(按q退出)");
-        while (true) {
-            String content = sc.nextLine();
-            if ("q".equals(content)) {
-                break;
+        if (status == 1) {
+            System.out.println("你已被对方屏蔽!(按q退出)");
+            while (true) {
+                String content = sc.next();
+                sc.nextLine();
+                if ("q".equals(content)) {
+                    node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE1));
+                    node.put("content", content);
+                    node.put("fromUser", username);
+                    send(node);
+                    break;
+                }
+                System.out.println(getColoredString(31, 1, "!!!" + username + ":" + content));
             }
-            Timestamp time = new Timestamp(System.currentTimeMillis());
-            System.out.println(time.toString().substring(0, 19) + " " + username + ":" + content);
-            node = objectMapper.createObjectNode();
-            node.put("fromUser", username);
-            node.put("toUser", friendName);
-            node.put("content", content);
-            node.put("time", time.toString());
-            node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE1));
-            send(node);
+        } else {
+            System.out.println("开始聊天!(按q退出)");
+            while (true) {
+                String content = sc.nextLine();
+                if ("q".equals(content)) {
+                    break;
+                }
+                Timestamp time = new Timestamp(System.currentTimeMillis());
+                System.out.println(time.toString().substring(0, 19) + " " + username + ":" + content);
+                node = objectMapper.createObjectNode();
+                node.put("fromUser", username);
+                node.put("toUser", friendName);
+                node.put("content", content);
+                node.put("time", time.toString());
+                node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE1));
+                send(node);
+            }
         }
     }
 
@@ -464,6 +497,24 @@ public class SendService {
             node.put("file", base64File);
             send(node);
         }
+    }
+
+    public void block(String username, String friendName) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("username", username);
+        node.put("friendName", friendName);
+        node.put("type", String.valueOf(MsgType.MSG_BLOCK));
+        send(node);
+    }
+
+    public void unblock(String username, String friendName) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("username", username);
+        node.put("friendName", friendName);
+        node.put("type", String.valueOf(MsgType.MSG_UNBLOCK));
+        send(node);
     }
 
     public void createGroup(String username) throws InterruptedException {
@@ -516,7 +567,7 @@ public class SendService {
             int i = 1;
             HashMap<Integer, String> map = new HashMap<>();
             System.out.println("-------------------------");
-            System.out.println(username + "的群组");
+            System.out.println(username + " 的群组");
             System.out.println("-------------------------");
             for (String group : groups) {
                 System.out.println(i + "." + group);
@@ -542,18 +593,11 @@ public class SendService {
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode node = objectMapper.createObjectNode();
             node.put("groupName", groupName);
-            node.put("type", String.valueOf(MsgType.MSG_GROUP_MEMBER));
+            node.put("username",username);
+            node.put("type", String.valueOf(MsgType.MSG_MEMBER_ROLE));
             send(node);
 
-            String members2 = (String) ClientHandler.queue2.take();
-            List<Member> members = objectMapper.readValue(members2, new TypeReference<>() {
-            });
-            int role = 0;
-            for (Member member : members) {
-                if (member.getMember().equals(username)) {
-                    role = member.getRole();
-                }
-            }
+            int role = ClientHandler.queue.take();
             System.out.println("-----------------------------");
             System.out.println("群组 " + groupName);
             System.out.println("-----------------------------");
@@ -574,7 +618,7 @@ public class SendService {
             sc.nextLine();
             switch (c) {
                 case 'a':
-                    listMember(username, groupName, role, members);
+                    listMember(username, groupName, role);
                     break;
                 case 'b':
                     groupChat(username, groupName);
@@ -602,6 +646,7 @@ public class SendService {
         node.put("type", String.valueOf(MsgType.MSG_GROUP_CHAT));
         send(node);
 
+        int status = ClientHandler.queue.take();
         String messages = (String) ClientHandler.queue2.take();
         List<Message> messages2 = objectMapper.readValue(messages, new TypeReference<>() {
         });
@@ -611,21 +656,37 @@ public class SendService {
             }
         }
 
-        System.out.println("开始聊天!(按q退出)");
-        while (true) {
-            String content = sc.nextLine();
-            Timestamp time = new Timestamp(System.currentTimeMillis());
-            System.out.println(time.toString().substring(0, 19) + " " + username + ":" + content);
-            node = objectMapper.createObjectNode();
-            node.put("from", username);
-            node.put("to", groupName);
-            node.put("content", content);
-            node.put("time", time.toString());
-            node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE2));
-            send(node);
+        if (status == 1) {
+            System.out.println("你已被禁言!(按q退出)");
+            while (true) {
+                String content = sc.next();
+                sc.nextLine();
+                if ("q".equals(content)) {
+                    node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE2));
+                    node.put("content", content);
+                    node.put("from", username);
+                    send(node);
+                    break;
+                }
+                System.out.println(getColoredString(31, 1, "!!!" + username + ":" + content));
+            }
+        } else {
+            System.out.println("开始聊天!(按q退出)");
+            while (true) {
+                String content = sc.nextLine();
+                Timestamp time = new Timestamp(System.currentTimeMillis());
+                System.out.println(time.toString().substring(0, 19) + " " + username + ":" + content);
+                node = objectMapper.createObjectNode();
+                node.put("from", username);
+                node.put("to", groupName);
+                node.put("content", content);
+                node.put("time", time.toString());
+                node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE2));
+                send(node);
 
-            if ("q".equals(content)) {
-                break;
+                if ("q".equals(content)) {
+                    break;
+                }
             }
         }
     }
@@ -641,7 +702,7 @@ public class SendService {
     }
 
     public void groupRequest(String username) throws InterruptedException, JsonProcessingException {
-        while(true) {
+        while (true) {
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode node = objectMapper.createObjectNode();
             node.put("username", username);
@@ -662,7 +723,7 @@ public class SendService {
                 System.out.println("请输入你要处理的加群申请序号:(按q退出)");
                 char c = sc.next().charAt(0);
                 sc.nextLine();
-                if(c == 'q'){
+                if (c == 'q') {
                     return;
                 }
                 Request request = map.get(Character.getNumericValue(c));
@@ -700,51 +761,66 @@ public class SendService {
         send(node);
     }
 
-    public void listMember(String username, String groupName, int role, List<Member> members) throws IOException, InterruptedException {
-        System.out.println("----------------------------");
-        System.out.println("群组 " + groupName + " 成员");
-        System.out.println("----------------------------");
-        int i = 1, j = 1, k = 1;
-        HashMap<Integer, String> map = new HashMap<>();
-        HashMap<String, Integer> map2 = new HashMap<>(); //群成员->身份
+    public void listMember(String username, String groupName, int role) throws IOException, InterruptedException {
         while (true) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("groupName", groupName);
+            node.put("type",String.valueOf(MsgType.MSG_GROUP_MEMBER));
+            send(node);
+
+            String members2 = (String) ClientHandler.queue2.take();
+            List<Member> members = objectMapper.readValue(members2, new TypeReference<>() {});
+            System.out.println("----------------------------");
+            System.out.println("群组 " + groupName + " 成员");
+            System.out.println("----------------------------");
+            int i = 1, j = 1, k = 1;
+            HashMap<Integer, Member> map = new HashMap<>();
             for (Member member : members) {
-                map.put(k, member.getMember());
-                map2.put(member.getMember(), member.getRole());
+                map.put(k, member);
                 if (member.getRole() == 1) {
-                    System.out.println("群主:");
-                    System.out.println(k + "." + member.getMember());
+                    System.out.println(getColoredString(34, 1, "群主:"));
+                    System.out.print(k + "." + member.getMember());
                 } else if (member.getRole() == 2) {
                     if (i == 1) {
-                        System.out.println("管理员:");
-                        System.out.println(k + "." + member.getMember());
+                        System.out.println(getColoredString(34, 1, "管理员:"));
+                        System.out.print(k + "." + member.getMember());
                     } else {
-                        System.out.println(k + "." + member.getMember());
+                        System.out.print(k + "." + member.getMember());
                     }
                     i++;
                 } else {
                     if (j == 1) {
-                        System.out.println("普通成员:");
-                        System.out.println(k + "." + member.getMember());
+                        System.out.println(getColoredString(34, 1, "普通成员:"));
+                        System.out.print(k + "." + member.getMember());
                     } else {
-                        System.out.println(k + "." + member.getMember());
+                        System.out.print(k + "." + member.getMember());
                     }
                     j++;
                 }
+                if (member.getStatus() == 1) {
+                    System.out.println("(禁言中)");
+                } else {
+                    System.out.println();
+                }
                 k++;
             }
+            System.out.println("----------------------------");
             if (role == 1 || role == 2) {
                 System.out.println("a.移除成员");
+                System.out.println("b.禁言/取消禁言");
             }
             if (role == 1) {
-                System.out.println("b.设置管理员");
-                System.out.println("c.取消管理员");
+                System.out.println("c.设置管理员");
+                System.out.println("d.取消管理员");
             }
             System.out.println("q.返回上层");
+            System.out.println("----------------------------");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
             sc.nextLine();
             int num, num2;
+            Member member;
             switch (c) {
                 case 'a':
                     if (role == 3) {
@@ -754,17 +830,42 @@ public class SendService {
                     num = sc.next().charAt(0);
                     sc.nextLine();
                     num2 = Character.getNumericValue(num);
-                    if (role == 2 && (map2.get(map.get(num2)) == 1 || map2.get(map.get(num2)) == 2)) {
+                    member = map.get(num2);
+                    if (role == 2 && (member.getRole() == 1 || member.getRole() == 2)) {
                         System.out.println("管理员只能移除普通成员");
                         break;
-                    } else if (map.get(num2).equals(username)) {
+                    } else if (member.getMember().equals(username)) {
                         System.out.println("不能移除自己");
                         break;
                     }
-                    removeMember(groupName, map.get(num2));
+                    removeMember(groupName, member.getMember());
                     System.out.println("移除成功!");
                     break;
                 case 'b':
+                    if (role == 3) {
+                        break;
+                    }
+                    System.out.println("请输入你要禁言或者取消禁言的成员序号:");
+                    num = sc.next().charAt(0);
+                    sc.nextLine();
+                    num2 = Character.getNumericValue(num);
+                    member = map.get(num2);
+                    if (member.getMember().equals(username)) {
+                        System.out.println("不能(取消)禁言自己");
+                        break;
+                    } else if (role == 2 && (member.getRole() == 1 || member.getRole() == 2)) {
+                        System.out.println("管理员只能(取消)禁言普通成员");
+                        break;
+                    }
+                    if (member.getStatus() == 0) {
+                        blockMember(groupName, member.getMember());
+                        System.out.println("禁言成功!");
+                    } else {
+                        unblockMember(groupName, member.getMember());
+                        System.out.println("取消禁言成功!");
+                    }
+                    break;
+                case 'c':
                     if (role == 2 || role == 3) {
                         break;
                     }
@@ -772,20 +873,23 @@ public class SendService {
                     num = sc.next().charAt(0);
                     sc.nextLine();
                     num2 = Character.getNumericValue(num);
-                    if (map2.get(map.get(num2)) == 3) {
-                        addManager(groupName, map.get(num2));
+                    member = map.get(num2);
+                    if (member.getRole() == 3) {
+                        addManager(groupName, member.getMember());
                         System.out.println("添加成功!");
                     }
                     break;
-                case 'c':
+                case 'd':
                     if (role == 2 || role == 3) {
                         break;
                     }
                     System.out.println("请输入你要取消管理员的成员序号:");
                     num = sc.next().charAt(0);
                     sc.nextLine();
-                    if (map2.get(map.get(num)) == 2) {
-                        removeManager(groupName, map.get(Character.getNumericValue(num)));
+                    num2 = Character.getNumericValue(num);
+                    member = map.get(num2);
+                    if (member.getRole() == 2) {
+                        removeManager(groupName, member.getMember());
                         System.out.println("取消成功!");
                     }
                     break;
@@ -796,31 +900,52 @@ public class SendService {
         }
     }
 
-    public void removeMember(String groupName, String memberName) {
+    public void removeMember(String groupName, String member) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("groupName", groupName);
-        node.put("member", memberName);
+        node.put("member", member);
         node.put("type", String.valueOf(MsgType.MSG_REMOVE_MEMBER));
         send(node);
     }
 
-    public void addManager(String groupName, String memberName) {
+    public void addManager(String groupName, String member) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("groupName", groupName);
-        node.put("member", memberName);
+        node.put("member", member);
         node.put("type", String.valueOf(MsgType.MSG_ADD_MANAGER));
         send(node);
     }
 
-    public void removeManager(String groupName, String memberName) {
+    public void blockMember(String groupName, String member) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("groupName", groupName);
-        node.put("member", memberName);
+        node.put("member", member);
+        node.put("type", String.valueOf(MsgType.MSG_BLOCK_MEMBER));
+        send(node);
+    }
+
+    public void unblockMember(String groupName, String member) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("member", member);
+        node.put("type", String.valueOf(MsgType.MSG_UNBLOCK_MEMBER));
+        send(node);
+    }
+
+    public void removeManager(String groupName, String member) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("groupName", groupName);
+        node.put("member", member);
         node.put("type", String.valueOf(MsgType.MSG_REMOVE_MANAGER));
         send(node);
     }
 
+    public static String getColoredString(int color, int fontType, String content) {
+        return String.format("\033[%d;%dm%s\033[0m", color, fontType, content);
+    }
 }

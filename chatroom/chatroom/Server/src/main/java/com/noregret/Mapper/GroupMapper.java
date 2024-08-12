@@ -8,7 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface GroupMapper {
-    @Insert("insert into `group`(group_name,member,role) values (#{groupName},#{member},#{role})")
+    @Insert("insert into `group`(group_name,member,role,status) values (#{groupName},#{member},#{role},0)")
     void insert(String groupName, String member, int role);
 
     @Select("select * from `group` where group_name = #{groupName} and role = 1")
@@ -17,7 +17,7 @@ public interface GroupMapper {
     @Select("select group_name from `group` where member = #{member}")
     List<String> getGroups(String member);
 
-    @Select("select member,role from `group` where group_name = #{groupName}")
+    @Select("select member,role,status from `group` where group_name = #{groupName}")
     List<Member> getMembers(String groupName);
 
     @Select("select member from `group` where group_name = #{groupName}")
@@ -32,6 +32,12 @@ public interface GroupMapper {
     @Update("update `group` set role = #{role} where group_name = #{groupName} and member = #{member}")
     void modifyManager(String groupName, String member, int role);
 
-    @Select("select member from `group` where group_name = #{groupName} and role in(1,2)")
-    List<String> getManagers(String groupName);
+    @Select("select role from `group` where group_name = #{groupName} and member = #{member}")
+    int getRole(String groupName, String member);
+
+    @Update("update `group` set `status` = #{status} where group_name = #{groupName} and member = #{member}")
+    void modifyStatus(String groupName, String member, int status);
+
+    @Select("select `status` from `group` where group_name = #{groupName} and member = #{member}")
+    int getStatus(String groupName, String member);
 }

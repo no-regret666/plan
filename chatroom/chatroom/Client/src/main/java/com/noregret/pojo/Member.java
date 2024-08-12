@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class Member {
     private String member;
     private int role;
+    private int status;
 }
