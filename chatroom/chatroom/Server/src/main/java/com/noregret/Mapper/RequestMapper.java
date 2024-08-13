@@ -25,4 +25,7 @@ public interface RequestMapper {
 
     @Delete("delete from request where `to` = #{groupName}")
     void breakGroup(String groupName);
+
+    @Select("select count(*) from request where `from` = #{from} and `to` = #{to} and type = #{type}")
+    int countRequest(String from, String to, int type);
 }

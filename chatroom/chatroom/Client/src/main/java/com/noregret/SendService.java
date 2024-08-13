@@ -19,6 +19,7 @@ import java.util.*;
 public class SendService {
     private Channel channel;
     Scanner sc = new Scanner(System.in);
+    Console console = System.console();
 
     public SendService(Channel channel) {
         this.channel = channel;
@@ -29,9 +30,10 @@ public class SendService {
             System.out.println("-----------------------------------------");
             System.out.println("              欢迎进入聊天室                ");
             System.out.println("-----------------------------------------");
-            System.out.println("           a.登录       b.注册             ");
-            System.out.println("          c.找回密码     d.注销             ");
-            System.out.println("                 e.退出                    ");
+            System.out.println("                 a.登录                   ");
+            System.out.println("                 b.注册                    ");
+            System.out.println("                c.忘记密码                  ");
+            System.out.println("                 q.退出                    ");
             System.out.println("------------------------------------------");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
@@ -46,7 +48,7 @@ public class SendService {
                 case 'c':
                     find();
                     break;
-                case 'e':
+                case 'q':
                     System.exit(1);
             }
         }
@@ -65,7 +67,8 @@ public class SendService {
         System.out.println("请输入用户名:");
         String username = sc.nextLine();
         System.out.println("请输入密码:");
-        String password = sc.nextLine();
+        char[] passwordArray = console.readPassword();
+        String password = new String(passwordArray);
 
         //封装json数据
         ObjectMapper objectMapper = new ObjectMapper();
@@ -94,7 +97,8 @@ public class SendService {
         System.out.println("请输入用户名:(不超过20位)");
         String username = sc.nextLine();
         System.out.println("请输入密码:(不超过20位)");
-        String password = sc.nextLine();
+        char[] passwordArray = console.readPassword();
+        String password = new String(passwordArray);
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
@@ -130,7 +134,8 @@ public class SendService {
         node.put("type", String.valueOf(MsgType.MSG_FIND));
         node.put("username", username);
         System.out.println("请输入新密码:");
-        String password = sc.nextLine();
+        char[] passwordArray = console.readPassword();
+        String password = new String(passwordArray);
         node.put("password", password);
 
         send(node);
@@ -263,6 +268,8 @@ public class SendService {
             System.out.println("不存在该用户!");
         } else if (code == 300) {
             System.out.println("已添加该好友!");
+        } else if (code == 400) {
+            System.out.println("已发送过好友申请!");
         }
     }
 
@@ -550,6 +557,10 @@ public class SendService {
             System.out.println("该群组不存在!");
         } else if (code == 200) {
             System.out.println("已发送加群申请!");
+        } else if (code == 300) {
+            System.out.println("已发送过加群申请!");
+        }else if(code == 400){
+            System.out.println("已加入该群组!");
         }
     }
 
@@ -593,7 +604,7 @@ public class SendService {
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode node = objectMapper.createObjectNode();
             node.put("groupName", groupName);
-            node.put("username",username);
+            node.put("username", username);
             node.put("type", String.valueOf(MsgType.MSG_MEMBER_ROLE));
             send(node);
 
@@ -766,11 +777,12 @@ public class SendService {
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode node = objectMapper.createObjectNode();
             node.put("groupName", groupName);
-            node.put("type",String.valueOf(MsgType.MSG_GROUP_MEMBER));
+            node.put("type", String.valueOf(MsgType.MSG_GROUP_MEMBER));
             send(node);
 
             String members2 = (String) ClientHandler.queue2.take();
-            List<Member> members = objectMapper.readValue(members2, new TypeReference<>() {});
+            List<Member> members = objectMapper.readValue(members2, new TypeReference<>() {
+            });
             System.out.println("----------------------------");
             System.out.println("群组 " + groupName + " 成员");
             System.out.println("----------------------------");

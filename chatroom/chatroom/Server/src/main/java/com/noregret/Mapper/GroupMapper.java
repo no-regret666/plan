@@ -40,4 +40,7 @@ public interface GroupMapper {
 
     @Select("select `status` from `group` where group_name = #{groupName} and member = #{member}")
     int getStatus(String groupName, String member);
+
+    @Select("select count(*) from `group` where group_name = #{groupName} and member = #{member}")
+    int getCount(String groupName, String member);
 }

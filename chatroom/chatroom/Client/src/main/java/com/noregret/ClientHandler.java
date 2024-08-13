@@ -65,6 +65,14 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             } else if (code == 4) {
                 String group = node.get("group").asText();
                 System.out.println(getColoredString(33, 1, group + " 有新消息!"));
+            } else if (code == 5) {
+                String friend = node.get("friend").asText();
+                int choice = node.get("choice").asInt();
+                if (choice == 0) {
+                    System.out.println(getColoredString(33, 1, friend + " 同意添加您为好友!"));
+                } else if (choice == 1) {
+                    System.out.println(getColoredString(33, 1, friend + " 拒绝添加您为好友!"));
+                }
             }
         } else if (String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST).equals(type)) {
             String fromUsers = node.get("fromUsers").asText();
@@ -94,11 +102,10 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         } else if (String.valueOf(MsgType.MSG_LIST_GROUP).equals(type)) {
             String groups = node.get("groups").asText();
             queue2.put(groups);
-        }else if(String.valueOf(MsgType.MSG_MEMBER_ROLE).equals(type)){
+        } else if (String.valueOf(MsgType.MSG_MEMBER_ROLE).equals(type)) {
             int role = node.get("role").asInt();
             queue.put(role);
-        }
-        else if (String.valueOf(MsgType.MSG_GROUP_MEMBER).equals(type)) {
+        } else if (String.valueOf(MsgType.MSG_GROUP_MEMBER).equals(type)) {
             String members = node.get("members").asText();
             queue2.put(members);
         } else if (String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST).equals(type)) {

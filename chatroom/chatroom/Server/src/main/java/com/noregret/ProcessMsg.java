@@ -104,15 +104,20 @@ public class ProcessMsg {
                 node.put("code", 200); //不存在该用户
             } else {
                 if (friendMapper.selectFriend2(username, friendName) == null) {
-                    node.put("code", 100); //发送好友申请
-                    requestMapper.insertRequest(username, friendName, 1);
-                    if (isExist(friendName)) {
-                        ObjectNode node1 = mapper.createObjectNode();
-                        node1.put("type", String.valueOf(MsgType.MSG_NOTICE));
-                        node1.put("username", username);
-                        node1.put("code", 1);
-                        ChannelHandlerContext ctx = online1.get(friendName);
-                        send(node1, ctx);
+                    if(requestMapper.countRequest(username,friendName,1) == 0) {
+                        node.put("code", 100); //发送好友申请
+                        requestMapper.insertRequest(username, friendName, 1);
+                        if (isExist(friendName)) {
+                            ObjectNode node1 = mapper.createObjectNode();
+                            node1.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                            node1.put("username", username);
+                            node1.put("code", 1);
+                            ChannelHandlerContext ctx = online1.get(friendName);
+                            send(node1, ctx);
+                        }
+                    }
+                    else{
+                        node.put("code", 400); //已发送过好友申请
                     }
                 } else {
                     node.put("code", 300); //已添加该好友
@@ -152,6 +157,15 @@ public class ProcessMsg {
             if (code == 0) {
                 friendMapper.insertFriendship(fromUser, toUser);
                 friendMapper.insertFriendship(toUser, fromUser);
+            }
+            if(isExist(fromUser)){
+                ObjectNode node1 = mapper.createObjectNode();
+                node1.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                node1.put("friend",toUser);
+                node1.put("choice",code);
+                node1.put("code",5);
+                ChannelHandlerContext ctx = online1.get(fromUser);
+                send(node1, ctx);
             }
             requestMapper.deleteRequest(fromUser, toUser, 1);
         } else if (String.valueOf(MsgType.MSG_LIST_FRIEND).equals(type)) {
@@ -278,21 +292,29 @@ public class ProcessMsg {
             if (groupMapper.getGroup(to) == null) {
                 node.put("code", 100); //群组不存在
             } else {
-                requestMapper.insertRequest(from, to, 2);
-                node.put("code", 200); //已发送加群申请
-                List<Member> members = groupMapper.getMembers(to);
-                for (Member member : members) {
-                    if (member.getRole() == 1 || member.getRole() == 2) {
-                        if (isExist(member.getMember())) {
-                            ObjectNode node1 = mapper.createObjectNode();
-                            node1.put("type", String.valueOf(MsgType.MSG_NOTICE));
-                            node1.put("from", from);
-                            node1.put("to", to);
-                            node1.put("code", 2);
-                            ChannelHandlerContext ctx = online1.get(member.getMember());
-                            send(node1, ctx);
+                if (groupMapper.getCount(to, from) == 0) {
+                    if (requestMapper.countRequest(from, to, 2) == 0) {
+                        requestMapper.insertRequest(from, to, 2);
+                        node.put("code", 200); //发送加群申请
+                        List<Member> members = groupMapper.getMembers(to);
+                        for (Member member : members) {
+                            if (member.getRole() == 1 || member.getRole() == 2) {
+                                if (isExist(member.getMember())) {
+                                    ObjectNode node1 = mapper.createObjectNode();
+                                    node1.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                                    node1.put("from", from);
+                                    node1.put("to", to);
+                                    node1.put("code", 2);
+                                    ChannelHandlerContext ctx = online1.get(member.getMember());
+                                    send(node1, ctx);
+                                }
+                            }
                         }
+                    } else {
+                        node.put("code", 300); //已发送过加群申请
                     }
+                }else {
+                    node.put("code", 400); //已加入该群组
                 }
             }
             send(node, channel);
