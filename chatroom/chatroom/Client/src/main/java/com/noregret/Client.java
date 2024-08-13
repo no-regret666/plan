@@ -15,7 +15,7 @@ import java.io.IOException;
 
 @Component
 public class Client {
-    public void init(String host,int port){
+    public void init(String host, int port) {
         //创建事件循环组
         NioEventLoopGroup group = new NioEventLoopGroup();
 
@@ -26,7 +26,7 @@ public class Client {
                     .channel(NioSocketChannel.class)
                     .handler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
-                        protected void initChannel(NioSocketChannel ch) throws Exception {
+                        protected void initChannel(NioSocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast(new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 4, 0, 4));
                             pipeline.addLast(new StringDecoder());
@@ -34,16 +34,22 @@ public class Client {
                         }
                     });
             //连接服务器
-            Channel channel = bootstrap.connect(host,port).sync().channel();
-            channel.config().setOption(ChannelOption.SO_SNDBUF,65535);
+            Channel channel = bootstrap.connect(host, port).sync().channel();
+            channel.config().setOption(ChannelOption.SO_SNDBUF, 65535);
+            SendService sendService = new SendService(channel);
+            group.submit(() -> {
+                try {
+                    sendService.menu();
+                } catch (InterruptedException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             channel.closeFuture().sync();
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            if(group != null){
-                group.shutdownGracefully();
-            }
+            group.shutdownGracefully();
         }
     }
 }

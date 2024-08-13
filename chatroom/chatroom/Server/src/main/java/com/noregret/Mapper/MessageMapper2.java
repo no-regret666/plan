@@ -26,4 +26,8 @@ public interface MessageMapper2 {
 
     @Delete("delete from message2 where `to` = #{to}")
     void delete(String to);
+
+    @Delete("delete from message2 where `to` in (select group_name from `group` where member = #{username} and role" +
+            " = 1) or `from` = #{username}")
+    void deleteUser(String username);
 }

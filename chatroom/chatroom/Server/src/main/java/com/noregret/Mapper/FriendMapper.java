@@ -23,5 +23,8 @@ public interface FriendMapper {
 
     @Select("select status from friend where username = #{username} and friend_name = #{friendName}")
     Integer selectStatus(String username, String friendName);
+
+    @Delete("delete from friend where username = #{username} or friend_name = #{username}")
+    void deleteUser(String username);
 }
 

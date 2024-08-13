@@ -43,4 +43,8 @@ public interface GroupMapper {
 
     @Select("select count(*) from `group` where group_name = #{groupName} and member = #{member}")
     int getCount(String groupName, String member);
+
+    @Delete("delete from `group` where group_name in (select group_name from `group` where member" +
+            " = #{username} and role = 1) or member = #{username}")
+    void deleteUser(String username);
 }

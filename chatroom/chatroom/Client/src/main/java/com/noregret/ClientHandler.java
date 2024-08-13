@@ -4,32 +4,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class ClientHandler extends ChannelInboundHandlerAdapter {
     public static SynchronousQueue<Integer> queue = new SynchronousQueue<>();
     public static SynchronousQueue<Object> queue2 = new SynchronousQueue<>();
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        SendService sendService = new SendService(ctx.channel());
-        new Thread(() -> {
-            try {
-                sendService.menu();
-            } catch (InterruptedException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }).start();
-    }
-
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-//        System.out.println("Client received: " + msg);
+        System.out.println("Client received: " + msg);
         String response = (String) msg;
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(response);

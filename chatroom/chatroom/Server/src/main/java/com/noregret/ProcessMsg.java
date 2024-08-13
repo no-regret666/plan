@@ -446,6 +446,17 @@ public class ProcessMsg {
             String groupName = msg.get("groupName").asText();
             String member = msg.get("member").asText();
             groupMapper.modifyStatus(groupName, member, 0);
+        }else if(String.valueOf(MsgType.MSG_DELETE_USER).equals(type)){
+            String username = msg.get("username").asText();
+            userMapper.deleteUser(username);
+            requestMapper.deleteUser(username);
+            messageMapper1.deleteUser(username);
+            messageMapper2.deleteUser(username);
+            friendMapper.deleteUser(username);
+            groupMapper.deleteUser(username);
+            ChannelHandlerContext ctx = online1.get(username);
+            online1.remove(username);
+            online2.remove(ctx);
         }
     }
 

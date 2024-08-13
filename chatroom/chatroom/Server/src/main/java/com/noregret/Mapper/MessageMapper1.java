@@ -27,4 +27,7 @@ public interface MessageMapper1 {
 
     @Delete("delete from message1 where `from` = #{from} and `to` = #{to}")
     void delete(String from, String to);
+
+    @Delete("delete from message1 where `from` = #{username} or `to` = #{username}")
+    void deleteUser(String username);
 }
