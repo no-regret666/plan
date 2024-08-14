@@ -1,17 +1,17 @@
 package com.noregret;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.handler.stream.ChunkedNioFile;
 import org.apache.commons.mail.HtmlEmail;
-import com.noregret.pojo.*;
+import com.noregret.Pojo.*;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -359,7 +359,7 @@ public class SendService {
                     privateChat(username, friendName);
                     break;
                 case 'b':
-                    sendFile(username, friendName);
+                    sendFile(username,friendName);
                     break;
                 case 'c':
                     if (status == 0) {
@@ -517,24 +517,34 @@ public class SendService {
         }
     }
 
-    public void sendFile(String username, String friendName) throws IOException, InterruptedException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode node = objectMapper.createObjectNode();
-        node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
-
-        node.put("from", username);
-        node.put("to", friendName);
+    public void sendFile(String username,String friendName) throws IOException, InterruptedException {
         while (true) {
-            System.out.println("请输入你要发送的文件:(按q返回上层)");
+            System.out.println("请输入你要传输的文件:(按q返回上层)");
             String fileURL = sc.nextLine();
-            if (fileURL.equals("q")) {
+            if ("q".equals(fileURL)) {
                 friendMenu(username, friendName);
                 return;
             }
-            byte[] file = Files.readAllBytes(Paths.get(fileURL));
-            String base64File = Base64.getEncoder().encodeToString(file);
-            node.put("file", base64File);
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("from", username);
+            node.put("to", friendName);
+//            Timestamp time = new Timestamp(System.currentTimeMillis());
+//            node.put("time", time.toString());
+            String[] urlComponents = fileURL.split("/");
+            if(urlComponents.length > 0) {
+                node.put("filename", urlComponents[urlComponents.length-1]);
+            }
+            node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
             send(node);
+            try {
+                File file = new File(fileURL);
+                ChunkedNioFile chunkedNioFile = new ChunkedNioFile(file);
+                channel.writeAndFlush(chunkedNioFile);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-package com.noregret.pojo;
+package com.noregret.Pojo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class theFriend {
-    String name;
-    Integer status; //是否在线，1:在线，0:不在线
+public class Friend {
+    private int id;
+    private String username;
+    private String friendName;
 }

@@ -1,4 +1,4 @@
-package com.noregret.pojo;
+package com.noregret.Pojo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -31,10 +31,11 @@ public class ProcessMsg {
     @Autowired
     private MessageMapper2 messageMapper2;
 
-    private static HashMap<String, ChannelHandlerContext> online1 = new HashMap<>(); //储存当前在线用户
-    private static HashMap<ChannelHandlerContext, String> online2 = new HashMap<>();
-    private static HashMap<String, String> privateChatting = new HashMap<>(); //记录私聊
-    private static HashMap<String, String> groupChatting = new HashMap<>(); //记录群聊
+    public static HashMap<String, ChannelHandlerContext> online1 = new HashMap<>(); //储存当前在线用户
+    public static HashMap<ChannelHandlerContext, String> online2 = new HashMap<>();
+    public static HashMap<String, String> privateChatting = new HashMap<>(); //记录私聊
+    public static HashMap<String, String> groupChatting = new HashMap<>(); //记录群聊
+    public static HashMap<String,ChannelHandlerContext> transferFile = new HashMap<>(); //发送者用户名->接收者ctx
 
     public static ChannelHandlerContext channel;
 
@@ -246,14 +247,12 @@ public class ProcessMsg {
         } else if (String.valueOf(MsgType.MSG_SEND_FILE).equals(type)) {
             String from = msg.get("from").asText();
             String to = msg.get("to").asText();
-            String file = msg.get("file").asText();
-            ObjectNode node = mapper.createObjectNode();
-            node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
-            node.put("from", from);
-            node.put("file", file);
-            if (isExist(to)) {
+            String filename = msg.get("filename").asText();
+//            String time = msg.get("time").asText();
+//            String id = from + "-" + time + "-" + filename;
+            if(isExist(to)){
                 ChannelHandlerContext ctx = online1.get(to);
-                send(node, ctx);
+                transferFile.put(from,ctx);
             }
         } else if (String.valueOf(MsgType.MSG_FRIEND_MENU).equals(type)) {
             String username = msg.get("username").asText();

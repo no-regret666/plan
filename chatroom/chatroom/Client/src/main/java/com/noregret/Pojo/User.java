@@ -1,10 +1,8 @@
-package com.noregret.pojo;
+package com.noregret.Pojo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
 
 @Data
 @AllArgsConstructor

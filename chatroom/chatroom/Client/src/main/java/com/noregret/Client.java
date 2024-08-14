@@ -9,6 +9,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -29,7 +31,9 @@ public class Client {
                         protected void initChannel(NioSocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast(new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 4, 0, 4));
+                            pipeline.addLast(new StringEncoder());
                             pipeline.addLast(new StringDecoder());
+                            pipeline.addLast(new ChunkedWriteHandler());
                             pipeline.addLast(new ClientHandler());
                         }
                     });
