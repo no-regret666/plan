@@ -7,11 +7,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Base64;
 import java.util.concurrent.SynchronousQueue;
 
 public class ClientHandler extends ChannelInboundHandlerAdapter {
@@ -45,24 +44,24 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 int code = node.get("code").asInt();
                 if (code == 1) {
                     String username = node.get("username").asText();
-                    System.out.println(getColoredString(33, 1, username + " 申请添加为好友!"));
+                    System.out.println(Utils.getColoredString(33, 1, username + " 申请添加为好友!"));
                 } else if (code == 2) {
                     String from = node.get("from").asText();
                     String to = node.get("to").asText();
-                    System.out.println(getColoredString(33, 1, from + " 申请加入 " + to + " 群组!"));
+                    System.out.println(Utils.getColoredString(33, 1, from + " 申请加入 " + to + " 群组!"));
                 } else if (code == 3) {
                     String fromUser = node.get("fromUser").asText();
-                    System.out.println(getColoredString(33, 1, fromUser + " 发来了新消息!"));
+                    System.out.println(Utils.getColoredString(33, 1, fromUser + " 发来了新消息!"));
                 } else if (code == 4) {
                     String group = node.get("group").asText();
-                    System.out.println(getColoredString(33, 1, group + " 有新消息!"));
+                    System.out.println(Utils.getColoredString(33, 1, group + " 有新消息!"));
                 } else if (code == 5) {
                     String friend = node.get("friend").asText();
                     int choice = node.get("choice").asInt();
                     if (choice == 0) {
-                        System.out.println(getColoredString(33, 1, friend + " 同意添加您为好友!"));
+                        System.out.println(Utils.getColoredString(33, 1, friend + " 同意添加您为好友!"));
                     } else if (choice == 1) {
-                        System.out.println(getColoredString(33, 1, friend + " 拒绝添加您为好友!"));
+                        System.out.println(Utils.getColoredString(33, 1, friend + " 拒绝添加您为好友!"));
                     }
                 }
             } else if (String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST).equals(type)) {
@@ -112,32 +111,26 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 String time = node.get("time").asText();
                 String from = node.get("from").asText();
                 System.out.println(time.substring(0, 19) + " " + from + ":" + content);
-            } else if (String.valueOf(MsgType.MSG_SEND_FILE).equals(type)) {
-                String file = node.get("file").asText();
-                byte[] base64File = Base64.getDecoder().decode(file);
-                try (FileOutputStream fos = new FileOutputStream("received_file")) {
-                    fos.write(base64File);
+            } else if (String.valueOf(MsgType.MSG_SEND_FILE).equals(type) || String.valueOf(MsgType.MSG_SEND_GROUP_FILE).equals(type)) {
+                int code = node.get("code").asInt();
+                queue.put(code);
+                if(code == 0) {
+                    int port = node.get("port").asInt();
+                    queue.put(port);
+                }
+            }else if(String.valueOf(MsgType.MSG_RECEIVE_FILE).equals(type)){
+                int port = node.get("port").asInt();
+                String from = node.get("from").asText();
+                String to = node.get("to").asText();
+                InetAddress address = InetAddress.getByName("noregret-arch");
+                String ip = address.getHostAddress();
+                int code = node.get("code").asInt();
+                if(code == 1) {
+                    new RecvFileThread(port, ip, from, null).start();
+                }else if(code == 2) {
+                    new RecvFileThread(port, ip, from, to).start();
                 }
             }
-        }else if(msg instanceof ByteBuf byteBuf){
-            ByteBuffer byteBuffer = byteBuf.nioBuffer();
-            File file = new File("received_file.txt");
-            RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-            FileChannel fileChannel = randomAccessFile.getChannel();
-            while(byteBuffer.hasRemaining()){
-                fileChannel.position(file.length());
-                int length = fileChannel.write(byteBuffer);
-                if(length == 0){
-                    break;
-                }
-            }
-            byteBuf.release();
-            fileChannel.close();
-            randomAccessFile.close();
         }
-    }
-
-    public static String getColoredString(int color, int fontType, String content) {
-        return String.format("\033[%d;%dm%s\033[0m", color, fontType, content);
     }
 }

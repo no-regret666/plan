@@ -11,6 +11,8 @@ import io.netty.channel.ChannelHandlerContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +37,6 @@ public class ProcessMsg {
     public static HashMap<ChannelHandlerContext, String> online2 = new HashMap<>();
     public static HashMap<String, String> privateChatting = new HashMap<>(); //记录私聊
     public static HashMap<String, String> groupChatting = new HashMap<>(); //记录群聊
-    public static HashMap<String,ChannelHandlerContext> transferFile = new HashMap<>(); //发送者用户名->接收者ctx
 
     public static ChannelHandlerContext channel;
 
@@ -245,14 +246,35 @@ public class ProcessMsg {
                 }
             }
         } else if (String.valueOf(MsgType.MSG_SEND_FILE).equals(type)) {
-            String from = msg.get("from").asText();
             String to = msg.get("to").asText();
-            String filename = msg.get("filename").asText();
-//            String time = msg.get("time").asText();
-//            String id = from + "-" + time + "-" + filename;
+            String from = msg.get("from").asText();
             if(isExist(to)){
+                int fromPort = getFreePort();
+                int toPort = getFreePort();
+
+                new TransferFile(fromPort,toPort).start();
+
+                //发送给接收者
+                ObjectNode node1 = mapper.createObjectNode();
+                node1.put("from",from);
+                node1.put("type", String.valueOf(MsgType.MSG_RECEIVE_FILE));
+                node1.put("port", toPort);
+                node1.put("code",1); //私聊接收文件
                 ChannelHandlerContext ctx = online1.get(to);
-                transferFile.put(from,ctx);
+                send(node1, ctx);
+
+                //发送给发送者
+                ObjectNode node2 = mapper.createObjectNode();
+                node2.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
+                node2.put("port", fromPort);
+                node2.put("code", 0); //告诉发送者对方在线
+                send(node2, channel);
+            }
+            else{
+                ObjectNode node = mapper.createObjectNode();
+                node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
+                node.put("code", 1); //接收者不在线
+                send(node, channel);
             }
         } else if (String.valueOf(MsgType.MSG_FRIEND_MENU).equals(type)) {
             String username = msg.get("username").asText();
@@ -456,6 +478,47 @@ public class ProcessMsg {
             ChannelHandlerContext ctx = online1.get(username);
             online1.remove(username);
             online2.remove(ctx);
+        }else if(String.valueOf(MsgType.MSG_SEND_GROUP_FILE).equals(type)){
+            String from = msg.get("from").asText();
+            String to = msg.get("to").asText();
+            List<String> members = groupMapper.getMemberNames(to);
+            int code = 1;
+            int fromPort = getFreePort();
+            if (!members.isEmpty()) {
+                for (String member : members) {
+                    if(from.equals(member)){
+                        continue;
+                    }
+                    if(isExist(member)){
+                        code = 0;
+                        int toPort = getFreePort();
+                        new TransferFile(fromPort,toPort).start();
+
+                        //发送给接收者
+                        ObjectNode node1 = mapper.createObjectNode();
+                        node1.put("from",from);
+                        node1.put("to",to);
+                        node1.put("type", String.valueOf(MsgType.MSG_RECEIVE_FILE));
+                        node1.put("port", toPort);
+                        node1.put("code",2); //群聊接收文件
+                        ChannelHandlerContext ctx = online1.get(member);
+                        send(node1, ctx);
+                    }
+                }
+            }
+            if(code == 0){
+                ObjectNode node2 = mapper.createObjectNode();
+                node2.put("type", String.valueOf(MsgType.MSG_SEND_GROUP_FILE));
+                node2.put("port", fromPort);
+                node2.put("code", 0); //告诉发送者有人在线
+                send(node2, channel);
+            }
+            if(code == 1){
+                ObjectNode node2 = mapper.createObjectNode();
+                node2.put("type", String.valueOf(MsgType.MSG_SEND_GROUP_FILE));
+                node2.put("code", 1); //告诉发送者无人在线
+                send(node2, channel);
+            }
         }
     }
 
@@ -476,4 +539,11 @@ public class ProcessMsg {
         groupChatting.remove(username);
     }
 
+    public static int getFreePort(){
+        try (ServerSocket serverSocket = new ServerSocket(0)){
+            return serverSocket.getLocalPort();
+        } catch (IOException e) {
+            throw new IllegalStateException("cannot find available port:" + e.getMessage());
+        }
+    }
 }

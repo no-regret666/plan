@@ -29,7 +29,9 @@ public enum MsgType {
     MSG_REMOVE_MANAGER, //移除管理员
     MSG_GROUP_CHAT, //群聊
     MSG_SEND_MESSAGE2, //群聊消息
-    MSG_SEND_FILE, //发送文件
+    MSG_SEND_FILE, //私聊发送文件
+    MSG_RECEIVE_FILE, //接收文件
+    MSG_SEND_GROUP_FILE, //群聊发送文件
     MSG_BLOCK, //屏蔽
     MSG_UNBLOCK, //取消屏蔽
     MSG_FRIEND_MENU, //好友菜单

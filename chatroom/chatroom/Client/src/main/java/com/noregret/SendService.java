@@ -1,22 +1,21 @@
 package com.noregret;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
-import io.netty.handler.stream.ChunkedNioFile;
 import org.apache.commons.mail.HtmlEmail;
 import com.noregret.Pojo.*;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.util.*;
 
 public class SendService {
-    private Channel channel;
+    private final Channel channel;
     Scanner sc = new Scanner(System.in);
     Console console = System.console();
 
@@ -197,22 +196,23 @@ public class SendService {
             System.out.println("g.处理加群申请");
             System.out.println("h.注销帐号");
             System.out.println("q.退出登录");
+            System.out.println("z.刷新");
             System.out.println();
             if (!fromUsers.isEmpty()) {
                 for (String fromUser : fromUsers) {
-                    System.out.println(getColoredString(33,1,fromUser + " 申请添加为好友!"));
+                    System.out.println(Utils.getColoredString(33, 1, fromUser + " 申请添加为好友!"));
                 }
             }
             if (!requests.isEmpty()) {
                 for (Request request : requests) {
-                    System.out.println(getColoredString(33,1,request.getFrom() + " 申请加入 " + request.getTo() + " 群组!"));
+                    System.out.println(Utils.getColoredString(33, 1, request.getFrom() + " 申请加入 " + request.getTo() + " 群组!"));
                 }
             }
             HashMap<String, Integer> map = new HashMap<>();
             if (!friends.isEmpty()) {
                 for (String friend : friends) {
                     if (!map.containsKey(friend)) {
-                        System.out.println(getColoredString(33,1,friend + " 发送了新消息!"));
+                        System.out.println(Utils.getColoredString(33, 1, friend + " 发送了新消息!"));
                     }
                     map.put(friend, map.getOrDefault(friend, 0) + 1);
                 }
@@ -247,6 +247,8 @@ public class SendService {
                     deleteUser(username);
                     menu();
                     return;
+                case 'z':
+                    break;
                 case 'q':
                     offline(username);
                     menu();
@@ -305,16 +307,18 @@ public class SendService {
                     i++;
                 }
                 System.out.println("--------------------------");
-                System.out.println("输入你要选择的好友序号:(按q返回个人主页)");
+                System.out.println("输入你要选择的好友序号:(q:返回个人主页 z:刷新)");
                 char c = sc.next().charAt(0);
                 sc.nextLine();
                 if (c == 'q') {
                     personHome(username);
                     return;
+                } else if (c == 'z') {
+                    continue;
                 }
                 friendMenu(username, map.get(Character.getNumericValue(c)));
             } else {
-                System.out.println("你当前未加好友!(按q返回个人主页)");
+                System.out.println("你当前未加好友!(q:返回个人主页 z:刷新)");
                 char c = sc.next().charAt(0);
                 sc.nextLine();
                 if (c == 'q') {
@@ -350,6 +354,7 @@ public class SendService {
             }
             System.out.println("d.删除该好友");
             System.out.println("q.返回好友列表");
+            System.out.println("z.刷新");
             System.out.println("----------------------------");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
@@ -359,7 +364,7 @@ public class SendService {
                     privateChat(username, friendName);
                     break;
                 case 'b':
-                    sendFile(username,friendName);
+                    sendFile(username, friendName);
                     break;
                 case 'c':
                     if (status == 0) {
@@ -375,12 +380,14 @@ public class SendService {
                 case 'q':
                     listFriend(username);
                     return;
+                case 'z':
+                    break;
             }
         }
     }
 
     public void friendRequest(String username) throws InterruptedException, IOException {
-        while(true) {
+        while (true) {
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode node = objectMapper.createObjectNode();
             node.put("username", username);
@@ -395,15 +402,17 @@ public class SendService {
                 int i = 1;
                 for (String fromUser : fromUsers2) {
                     map.put(i, fromUser);
-                    System.out.println(i + "." + fromUser + "发送了好友申请!");
+                    System.out.println(i + "." + fromUser + " 发送了好友申请!");
                     i++;
                 }
-                System.out.println("请输入你要处理的好友申请序号:(按q返回个人主页)");
+                System.out.println("请输入你要处理的好友申请序号:(q:返回个人主页 z:刷新)");
                 char c = sc.next().charAt(0);
                 sc.nextLine();
                 if (c == 'q') {
                     personHome(username);
                     return;
+                } else if (c == 'z') {
+                    continue;
                 }
                 String fromUser = map.get(Character.getNumericValue(c));
                 System.out.println("a.同意  b.拒绝");
@@ -415,7 +424,7 @@ public class SendService {
                     friendResponse(fromUser, username, 1);
                 }
             } else {
-                System.out.println("无新的好友申请!(按q返回个人主页)");
+                System.out.println("无新的好友申请!(q:返回个人主页 z:刷新)");
                 char c = sc.next().charAt(0);
                 sc.nextLine();
                 if (c == 'q') {
@@ -457,7 +466,7 @@ public class SendService {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("username", username);
-        node.put("type",String.valueOf(MsgType.MSG_DELETE_USER));
+        node.put("type", String.valueOf(MsgType.MSG_DELETE_USER));
         send(node);
     }
 
@@ -495,7 +504,7 @@ public class SendService {
                     send(node);
                     break;
                 }
-                System.out.println(getColoredString(31, 1, "!!!" + username + ":" + content));
+                System.out.println(Utils.getColoredString(31, 1, "!!!" + username + ":" + content));
             }
         } else {
             System.out.println("开始聊天!(按q退出)");
@@ -517,7 +526,7 @@ public class SendService {
         }
     }
 
-    public void sendFile(String username,String friendName) throws IOException, InterruptedException {
+    public void sendFile(String username, String friendName) throws IOException, InterruptedException {
         while (true) {
             System.out.println("请输入你要传输的文件:(按q返回上层)");
             String fileURL = sc.nextLine();
@@ -529,21 +538,26 @@ public class SendService {
             ObjectNode node = objectMapper.createObjectNode();
             node.put("from", username);
             node.put("to", friendName);
-//            Timestamp time = new Timestamp(System.currentTimeMillis());
-//            node.put("time", time.toString());
             String[] urlComponents = fileURL.split("/");
-            if(urlComponents.length > 0) {
-                node.put("filename", urlComponents[urlComponents.length-1]);
+            if (urlComponents.length > 0) {
+                node.put("filename", urlComponents[urlComponents.length - 1]);
             }
             node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
             send(node);
-            try {
-                File file = new File(fileURL);
-                ChunkedNioFile chunkedNioFile = new ChunkedNioFile(file);
-                channel.writeAndFlush(chunkedNioFile);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
+
+            int status = ClientHandler.queue.take();
+            if (status == 0) {
+                try {
+                    File file = new File(fileURL);
+                    int port = ClientHandler.queue.take();
+                    InetAddress address = InetAddress.getByName("noregret-arch");
+                    String ip = address.getHostAddress();
+                    new SendFileThread(port, ip, file).start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (status == 1) {
+                System.out.println("对方不在线!");
             }
         }
     }
@@ -601,7 +615,7 @@ public class SendService {
             System.out.println("已发送加群申请!");
         } else if (code == 300) {
             System.out.println("已发送过加群申请!");
-        }else if(code == 400){
+        } else if (code == 400) {
             System.out.println("已加入该群组!");
         }
     }
@@ -629,16 +643,18 @@ public class SendService {
                     i++;
                 }
                 System.out.println("-------------------------");
-                System.out.println("请输入你要选择的群组序号:(按q返回个人主页)");
+                System.out.println("请输入你要选择的群组序号:(q:返回个人主页 z:刷新)");
                 char c = sc.next().charAt(0);
                 sc.nextLine();
                 if (c == 'q') {
                     personHome(username);
                     return;
+                } else if (c == 'z') {
+                    continue;
                 }
                 groupMenu(username, map.get(Character.getNumericValue(c)));
             } else {
-                System.out.println("你尚未加入群组!(按q返回个人主页)");
+                System.out.println("你尚未加入群组!(q:返回个人主页 z:刷新)");
                 char c = sc.next().charAt(0);
                 sc.nextLine();
                 if (c == 'q') {
@@ -673,6 +689,7 @@ public class SendService {
                 }
             }
             System.out.println("q.返回群组列表");
+            System.out.println("z.刷新");
             System.out.println("------------------------------");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
@@ -683,6 +700,9 @@ public class SendService {
                     break;
                 case 'b':
                     groupChat(username, groupName);
+                    break;
+                case 'c':
+                    sendGroupFile(username,groupName);
                     break;
                 case 'd':
                     if (role == 1) {
@@ -695,6 +715,8 @@ public class SendService {
                 case 'q':
                     listGroup(username);
                     return;
+                case 'z':
+                    break;
             }
         }
     }
@@ -729,7 +751,7 @@ public class SendService {
                     send(node);
                     break;
                 }
-                System.out.println(getColoredString(31, 1, "!!!" + username + ":" + content));
+                System.out.println(Utils.getColoredString(31, 1, "!!!" + username + ":" + content));
             }
         } else {
             System.out.println("开始聊天!(按q退出)");
@@ -749,6 +771,40 @@ public class SendService {
                     break;
                 }
             }
+        }
+    }
+
+    public void sendGroupFile(String username,String groupName) throws IOException, InterruptedException {
+        System.out.println("请输入你要传输的文件:(按q返回上层)");
+        String fileURL = sc.nextLine();
+        if ("q".equals(fileURL)) {
+            groupMenu(username,groupName);
+            return;
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("from", username);
+        node.put("to", groupName);
+        String[] urlComponents = fileURL.split("/");
+        if (urlComponents.length > 0) {
+            node.put("filename", urlComponents[urlComponents.length - 1]);
+        }
+        node.put("type", String.valueOf(MsgType.MSG_SEND_GROUP_FILE));
+        send(node);
+
+        int status = ClientHandler.queue.take();
+        if (status == 0) {
+            try {
+                File file = new File(fileURL);
+                int port = ClientHandler.queue.take();
+                InetAddress address = InetAddress.getByName("noregret-arch");
+                String ip = address.getHostAddress();
+                new SendFileThread(port, ip, file).start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else if (status == 1) {
+            System.out.println("群组当前无人在线!");
         }
     }
 
@@ -777,15 +833,18 @@ public class SendService {
                 int i = 1;
                 HashMap<Integer, Request> map = new HashMap<>();
                 for (Request request : requests) {
-                    System.out.println(i + "." + request.getFrom() + "申请加入" + request.getTo() + "群组!");
+                    System.out.println(i + "." + request.getFrom() + " 申请加入 " + request.getTo() + " 群组!");
                     map.put(i, request);
                     i++;
                 }
-                System.out.println("请输入你要处理的加群申请序号:(按q退出)");
+                System.out.println("请输入你要处理的加群申请序号:(q:退出 z:刷新)");
                 char c = sc.next().charAt(0);
                 sc.nextLine();
                 if (c == 'q') {
+                    personHome(username);
                     return;
+                }else if (c == 'z') {
+                    continue;
                 }
                 Request request = map.get(Character.getNumericValue(c));
                 System.out.println("a.同意  b.拒绝");
@@ -846,11 +905,11 @@ public class SendService {
             for (Member member : members) {
                 map.put(k, member);
                 if (member.getRole() == 1) {
-                    System.out.println(getColoredString(34, 1, "群主:"));
+                    System.out.println(Utils.getColoredString(34, 1, "群主:"));
                     System.out.print(k + "." + member.getMember());
                 } else if (member.getRole() == 2) {
                     if (i == 1) {
-                        System.out.println(getColoredString(34, 1, "管理员:"));
+                        System.out.println(Utils.getColoredString(34, 1, "管理员:"));
                         System.out.print(k + "." + member.getMember());
                     } else {
                         System.out.print(k + "." + member.getMember());
@@ -858,7 +917,7 @@ public class SendService {
                     i++;
                 } else {
                     if (j == 1) {
-                        System.out.println(getColoredString(34, 1, "普通成员:"));
+                        System.out.println(Utils.getColoredString(34, 1, "普通成员:"));
                         System.out.print(k + "." + member.getMember());
                     } else {
                         System.out.print(k + "." + member.getMember());
@@ -882,6 +941,7 @@ public class SendService {
                 System.out.println("d.取消管理员");
             }
             System.out.println("q.返回上层");
+            System.out.println("z.刷新");
             System.out.println("----------------------------");
             System.out.println("请输入选择:");
             char c = sc.next().charAt(0);
@@ -963,6 +1023,8 @@ public class SendService {
                 case 'q':
                     groupMenu(username, groupName);
                     return;
+                case 'z':
+                    break;
             }
         }
     }
@@ -1012,7 +1074,4 @@ public class SendService {
         send(node);
     }
 
-    public static String getColoredString(int color, int fontType, String content) {
-        return String.format("\033[%d;%dm%s\033[0m", color, fontType, content);
-    }
 }
