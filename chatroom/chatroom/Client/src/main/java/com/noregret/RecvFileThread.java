@@ -1,7 +1,5 @@
 package com.noregret;
 
-import ch.qos.logback.core.model.InsertFromJNDIModel;
-
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;

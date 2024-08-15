@@ -2,15 +2,9 @@ package com.noregret;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-
-import java.io.File;
-import java.io.RandomAccessFile;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.SynchronousQueue;
 
 public class ClientHandler extends ChannelInboundHandlerAdapter {
@@ -19,7 +13,6 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("Client received: " + msg);
         if (msg instanceof String response) {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(response);
@@ -121,13 +114,12 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             }else if(String.valueOf(MsgType.MSG_RECEIVE_FILE).equals(type)){
                 int port = node.get("port").asInt();
                 String from = node.get("from").asText();
-                String to = node.get("to").asText();
-                InetAddress address = InetAddress.getByName("noregret-arch");
-                String ip = address.getHostAddress();
+                String ip = Utils.getIP();
                 int code = node.get("code").asInt();
                 if(code == 1) {
                     new RecvFileThread(port, ip, from, null).start();
                 }else if(code == 2) {
+                    String to = node.get("to").asText();
                     new RecvFileThread(port, ip, from, to).start();
                 }
             }

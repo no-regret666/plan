@@ -197,7 +197,6 @@ public class SendService {
             System.out.println("h.注销帐号");
             System.out.println("q.退出登录");
             System.out.println("z.刷新");
-            System.out.println();
             if (!fromUsers.isEmpty()) {
                 for (String fromUser : fromUsers) {
                     System.out.println(Utils.getColoredString(33, 1, fromUser + " 申请添加为好友!"));
@@ -702,7 +701,7 @@ public class SendService {
                     groupChat(username, groupName);
                     break;
                 case 'c':
-                    sendGroupFile(username,groupName);
+                    sendGroupFile(username, groupName);
                     break;
                 case 'd':
                     if (role == 1) {
@@ -774,11 +773,11 @@ public class SendService {
         }
     }
 
-    public void sendGroupFile(String username,String groupName) throws IOException, InterruptedException {
+    public void sendGroupFile(String username, String groupName) throws IOException, InterruptedException {
         System.out.println("请输入你要传输的文件:(按q返回上层)");
         String fileURL = sc.nextLine();
         if ("q".equals(fileURL)) {
-            groupMenu(username,groupName);
+            groupMenu(username, groupName);
             return;
         }
         ObjectMapper objectMapper = new ObjectMapper();
@@ -797,8 +796,7 @@ public class SendService {
             try {
                 File file = new File(fileURL);
                 int port = ClientHandler.queue.take();
-                InetAddress address = InetAddress.getByName("noregret-arch");
-                String ip = address.getHostAddress();
+                String ip = Utils.getIP();
                 new SendFileThread(port, ip, file).start();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -843,7 +841,7 @@ public class SendService {
                 if (c == 'q') {
                     personHome(username);
                     return;
-                }else if (c == 'z') {
+                } else if (c == 'z') {
                     continue;
                 }
                 Request request = map.get(Character.getNumericValue(c));
@@ -906,30 +904,40 @@ public class SendService {
                 map.put(k, member);
                 if (member.getRole() == 1) {
                     System.out.println(Utils.getColoredString(34, 1, "群主:"));
-                    System.out.print(k + "." + member.getMember());
-                } else if (member.getRole() == 2) {
+                    System.out.println(k + "." + member.getMember());
+                }
+                if (member.getRole() == 2) {
                     if (i == 1) {
                         System.out.println(Utils.getColoredString(34, 1, "管理员:"));
                         System.out.print(k + "." + member.getMember());
+                        i++;
                     } else {
                         System.out.print(k + "." + member.getMember());
                     }
-                    i++;
-                } else {
+                    if (member.getStatus() == 1) {
+                        System.out.println("(禁言中)");
+                    } else {
+                        System.out.println();
+                    }
+                    k++;
+                }
+            }
+            k--;
+            for (Member member : members) {
+                if (member.getRole() == 3) {
                     if (j == 1) {
                         System.out.println(Utils.getColoredString(34, 1, "普通成员:"));
                         System.out.print(k + "." + member.getMember());
+                        j++;
                     } else {
                         System.out.print(k + "." + member.getMember());
                     }
-                    j++;
+                    if (member.getStatus() == 1) {
+                        System.out.println("(禁言中)");
+                    } else {
+                        System.out.println();
+                    }
                 }
-                if (member.getStatus() == 1) {
-                    System.out.println("(禁言中)");
-                } else {
-                    System.out.println();
-                }
-                k++;
             }
             System.out.println("----------------------------");
             if (role == 1 || role == 2) {
