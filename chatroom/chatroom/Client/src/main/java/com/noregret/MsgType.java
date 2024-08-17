@@ -12,8 +12,8 @@ public enum MsgType {
     MSG_FRIEND_RESPONSE, //处理好友申请
     MSG_DELETE_FRIEND, //删除好友
     MSG_OFFLINE, //离线
+    MSG_FRIEND_MESSAGE, //私聊消息记录
     MSG_PRIVATE_CHAT, //私聊
-    MSG_SEND_MESSAGE1, //私聊消息
     MSG_CREATE_GROUP, //建群
     MSG_GROUP_REQUEST, //加入群组申请
     MSG_FIND, //找回密码
@@ -28,7 +28,7 @@ public enum MsgType {
     MSG_ADD_MANAGER, //添加管理员
     MSG_REMOVE_MANAGER, //移除管理员
     MSG_GROUP_CHAT, //群聊
-    MSG_SEND_MESSAGE2, //群聊消息
+    MSG_GROUP_MESSAGE, //群聊消息记录
     MSG_SEND_FILE, //私聊发送文件
     MSG_RECEIVE_FILE, //接收文件
     MSG_SEND_GROUP_FILE, //群聊发送文件
@@ -36,5 +36,7 @@ public enum MsgType {
     MSG_UNBLOCK, //取消屏蔽
     MSG_FRIEND_MENU, //好友菜单
     MSG_BLOCK_MEMBER, //群禁言
-    MSG_UNBLOCK_MEMBER //解除禁言
+    MSG_UNBLOCK_MEMBER, //解除禁言
+    MSG_GET_STATUS, //获取状态 (1:好友屏蔽 2:群聊禁言)
+    MSG_UPLOAD_FILE //下载文件
 }

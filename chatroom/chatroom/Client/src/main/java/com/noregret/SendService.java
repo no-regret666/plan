@@ -1,5 +1,6 @@
 package com.noregret;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -10,7 +11,6 @@ import org.apache.commons.mail.HtmlEmail;
 import com.noregret.Pojo.*;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -194,7 +194,8 @@ public class SendService {
             System.out.println("e.加入群组");
             System.out.println("f.群组列表");
             System.out.println("g.处理加群申请");
-            System.out.println("h.注销帐号");
+            System.out.println("h.接收文件");
+            System.out.println("i.注销帐号");
             System.out.println("q.退出登录");
             System.out.println("z.刷新");
             if (!fromUsers.isEmpty()) {
@@ -243,6 +244,9 @@ public class SendService {
                     groupRequest(username);
                     break;
                 case 'h':
+                    receiveFile(username);
+                    break;
+                case 'i':
                     deleteUser(username);
                     menu();
                     return;
@@ -351,7 +355,8 @@ public class SendService {
             } else if (status == 1) {
                 System.out.println("c.取消屏蔽");
             }
-            System.out.println("d.删除该好友");
+            System.out.println("d.查看历史消息");
+            System.out.println("f.删除该好友");
             System.out.println("q.返回好友列表");
             System.out.println("z.刷新");
             System.out.println("----------------------------");
@@ -373,6 +378,9 @@ public class SendService {
                     }
                     break;
                 case 'd':
+                    friendMessage(username, friendName);
+                    break;
+                case 'f':
                     deleteFriend(username, friendName);
                     listFriend(username);
                     return;
@@ -471,58 +479,30 @@ public class SendService {
 
     public void privateChat(String username, String friendName) throws InterruptedException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode node = objectMapper.createObjectNode();
-        node.put("username", username);
-        node.put("friendName", friendName);
-        node.put("type", String.valueOf(MsgType.MSG_PRIVATE_CHAT));
-        send(node);
+        System.out.println("开始聊天!(按q退出)");
+        ObjectNode node;
+        while (true) {
+            String content = sc.nextLine();
+            Timestamp time = new Timestamp(System.currentTimeMillis());
+            node = objectMapper.createObjectNode();
+            node.put("fromUser", username);
+            node.put("toUser", friendName);
+            node.put("content", content);
+            node.put("time", time.toString());
+            node.put("type", String.valueOf(MsgType.MSG_PRIVATE_CHAT));
+            send(node);
+            if ("q".equals(content)) {
+                break;
+            }
 
-        int status = ClientHandler.queue.take();
-        String messages2 = (String) ClientHandler.queue2.take();
-        List<Message> messages = objectMapper.readValue(messages2, new TypeReference<>() {
-        });
-        if (!messages.isEmpty()) {
-            boolean print = false;
-            for (Message message : messages) {
-                if (message.getStatus().toString().equals("unread") && !print) {
-                    System.out.println("新消息:");
-                    print = true;
-                }
-                System.out.println(message.getTime().toString().substring(0, 19) + " " + message.getFrom() + ":" + message.getContent());
-            }
-        }
-        if (status == 1) {
-            System.out.println("你已被对方屏蔽!(按q退出)");
-            while (true) {
-                String content = sc.next();
-                sc.nextLine();
-                if ("q".equals(content)) {
-                    node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE1));
-                    node.put("content", content);
-                    node.put("fromUser", username);
-                    send(node);
-                    break;
-                }
-                System.out.println(Utils.getColoredString(31, 1, "!!!" + username + ":" + content));
-            }
-        } else {
-            System.out.println("开始聊天!(按q退出)");
-            while (true) {
-                String content = sc.nextLine();
-                if ("q".equals(content)) {
-                    break;
-                }
-                Timestamp time = new Timestamp(System.currentTimeMillis());
+            int status = ClientHandler.queue.take();
+            if (status == 1) {
+                System.out.println(Utils.getColoredString(31, 1, "你已被对方屏蔽!"));
+            } else if (status == 0) {
                 System.out.println(time.toString().substring(0, 19) + " " + username + ":" + content);
-                node = objectMapper.createObjectNode();
-                node.put("fromUser", username);
-                node.put("toUser", friendName);
-                node.put("content", content);
-                node.put("time", time.toString());
-                node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE1));
-                send(node);
             }
         }
+
     }
 
     public void sendFile(String username, String friendName) throws IOException, InterruptedException {
@@ -542,21 +522,39 @@ public class SendService {
                 node.put("filename", urlComponents[urlComponents.length - 1]);
             }
             node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
-            send(node);
+            Timestamp time = new Timestamp(System.currentTimeMillis());
+            node.put("time", time.toString());
+            try {
+                File file = new File(fileURL);
+                int port = ClientHandler.queue.take();
+                String ip = Utils.getIP();
+                new SendFileThread(port, ip, file).start();
+                send(node);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-            int status = ClientHandler.queue.take();
-            if (status == 0) {
-                try {
-                    File file = new File(fileURL);
-                    int port = ClientHandler.queue.take();
-                    InetAddress address = InetAddress.getByName("noregret-arch");
-                    String ip = address.getHostAddress();
-                    new SendFileThread(port, ip, file).start();
-                } catch (Exception e) {
-                    e.printStackTrace();
+    public void friendMessage(String username, String friendName) throws InterruptedException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("username", username);
+        node.put("friendName", friendName);
+        node.put("type", String.valueOf(MsgType.MSG_FRIEND_MESSAGE));
+        send(node);
+
+        String messages2 = (String) ClientHandler.queue2.take();
+        List<Message> messages = objectMapper.readValue(messages2, new TypeReference<>() {
+        });
+        if (!messages.isEmpty()) {
+            boolean print = false;
+            for (Message message : messages) {
+                if (message.getStatus().toString().equals("unread") && !print) {
+                    System.out.println(Utils.getColoredString(33, 1, "新消息:"));
+                    print = true;
                 }
-            } else if (status == 1) {
-                System.out.println("对方不在线!");
+                System.out.println(message.getTime().toString().substring(0, 19) + " " + message.getFrom() + ":" + message.getContent());
             }
         }
     }
@@ -679,7 +677,7 @@ public class SendService {
             System.out.println("-----------------------------");
             System.out.println("a.群成员");
             System.out.println("b.群聊");
-            System.out.println("c.发送文件");
+            // System.out.println("c.发送文件");
             if (role == 2 || role == 3) {
                 System.out.println("d.退出群组");
             } else {
@@ -687,6 +685,7 @@ public class SendService {
                     System.out.println("d.解散群组");
                 }
             }
+            System.out.println("e.查看历史消息");
             System.out.println("q.返回群组列表");
             System.out.println("z.刷新");
             System.out.println("------------------------------");
@@ -700,9 +699,9 @@ public class SendService {
                 case 'b':
                     groupChat(username, groupName);
                     break;
-                case 'c':
-                    sendGroupFile(username, groupName);
-                    break;
+//                case 'c':
+//                    sendGroupFile(username, groupName);
+//                    break;
                 case 'd':
                     if (role == 1) {
                         breakGroup(groupName);
@@ -711,6 +710,9 @@ public class SendService {
                     }
                     listGroup(username);
                     return;
+                case 'e':
+                    groupMessage(groupName);
+                    break;
                 case 'q':
                     listGroup(username);
                     return;
@@ -722,53 +724,44 @@ public class SendService {
 
     public void groupChat(String username, String groupName) throws InterruptedException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node;
+        System.out.println("开始聊天!(按q退出)");
+        while (true) {
+            String content = sc.nextLine();
+            Timestamp time = new Timestamp(System.currentTimeMillis());
+            node = objectMapper.createObjectNode();
+            node.put("from", username);
+            node.put("to", groupName);
+            node.put("content", content);
+            node.put("time", time.toString());
+            node.put("type", String.valueOf(MsgType.MSG_GROUP_CHAT));
+            send(node);
+            if ("q".equals(content)) {
+                break;
+            }
+
+            int status = ClientHandler.queue.take();
+            if (status == 1) {
+                System.out.println(Utils.getColoredString(31, 1, "你已被禁言!"));
+            } else if (status == 0) {
+                System.out.println(time.toString().substring(0, 19) + " " + username + ":" + content);
+            }
+        }
+    }
+
+    public void groupMessage(String groupName) throws InterruptedException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
         node.put("groupName", groupName);
-        node.put("member", username);
-        node.put("type", String.valueOf(MsgType.MSG_GROUP_CHAT));
+        node.put("type", String.valueOf(MsgType.MSG_GROUP_MESSAGE));
         send(node);
 
-        int status = ClientHandler.queue.take();
         String messages = (String) ClientHandler.queue2.take();
         List<Message> messages2 = objectMapper.readValue(messages, new TypeReference<>() {
         });
         if (!messages2.isEmpty()) {
             for (Message message : messages2) {
                 System.out.println(message.getTime().toString().substring(0, 19) + " " + message.getFrom() + ":" + message.getContent());
-            }
-        }
-
-        if (status == 1) {
-            System.out.println("你已被禁言!(按q退出)");
-            while (true) {
-                String content = sc.next();
-                sc.nextLine();
-                if ("q".equals(content)) {
-                    node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE2));
-                    node.put("content", content);
-                    node.put("from", username);
-                    send(node);
-                    break;
-                }
-                System.out.println(Utils.getColoredString(31, 1, "!!!" + username + ":" + content));
-            }
-        } else {
-            System.out.println("开始聊天!(按q退出)");
-            while (true) {
-                String content = sc.nextLine();
-                Timestamp time = new Timestamp(System.currentTimeMillis());
-                System.out.println(time.toString().substring(0, 19) + " " + username + ":" + content);
-                node = objectMapper.createObjectNode();
-                node.put("from", username);
-                node.put("to", groupName);
-                node.put("content", content);
-                node.put("time", time.toString());
-                node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE2));
-                send(node);
-
-                if ("q".equals(content)) {
-                    break;
-                }
             }
         }
     }
@@ -905,6 +898,7 @@ public class SendService {
                 if (member.getRole() == 1) {
                     System.out.println(Utils.getColoredString(34, 1, "群主:"));
                     System.out.println(k + "." + member.getMember());
+                    k++;
                 }
                 if (member.getRole() == 2) {
                     if (i == 1) {
@@ -922,7 +916,6 @@ public class SendService {
                     k++;
                 }
             }
-            k--;
             for (Member member : members) {
                 if (member.getRole() == 3) {
                     if (j == 1) {
@@ -1080,6 +1073,39 @@ public class SendService {
         node.put("member", member);
         node.put("type", String.valueOf(MsgType.MSG_REMOVE_MANAGER));
         send(node);
+    }
+
+    public void receiveFile(String username) throws InterruptedException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("username", username);
+        node.put("type", String.valueOf(MsgType.MSG_RECEIVE_FILE));
+        send(node);
+
+        String fileRequests = (String) ClientHandler.queue2.take();
+        List<FileRequest> fileRequests1 = objectMapper.readValue(fileRequests, new TypeReference<>() {
+        });
+
+        if (!fileRequests1.isEmpty()) {
+            int i = 1;
+            HashMap<Integer, FileRequest> map = new HashMap<>();
+            for (FileRequest fileRequest : fileRequests1) {
+                map.put(i, fileRequest);
+                System.out.println(i + "." + fileRequest.getFrom() + "发送的" + fileRequest.getFilename());
+                i++;
+            }
+            System.out.println("选择你要接收的文件:");
+            int choice = sc.nextInt();
+            FileRequest fileRequest = map.get(choice);
+
+            node = objectMapper.createObjectNode();
+            node.put("fileID", fileRequest.getFileID());
+            node.put("type", String.valueOf(MsgType.MSG_UPLOAD_FILE));
+            send(node);
+
+            int port = ClientHandler.queue.take();
+            new RecvFileThread(port).start();
+        }
     }
 
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import java.net.InetAddress;
+
 import java.util.concurrent.SynchronousQueue;
 
 public class ClientHandler extends ChannelInboundHandlerAdapter {
@@ -13,6 +13,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        // System.out.println("Client received: " + msg);
         if (msg instanceof String response) {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(response);
@@ -56,6 +57,14 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                     } else if (choice == 1) {
                         System.out.println(Utils.getColoredString(33, 1, friend + " 拒绝添加您为好友!"));
                     }
+                } else if (code == 6) {
+                    System.out.println(Utils.getColoredString(33, 1, "对方已屏蔽你!"));
+                } else if (code == 7) {
+                    System.out.println(Utils.getColoredString(33, 1, "对方解除了对你的屏蔽!"));
+                } else if (code == 8) {
+                    System.out.println(Utils.getColoredString(33, 1, "你已被禁言!"));
+                } else if (code == 9) {
+                    System.out.println(Utils.getColoredString(33, 1, "你已被解除禁言!"));
                 }
             } else if (String.valueOf(MsgType.MSG_LIST_FRIEND_REQUEST).equals(type)) {
                 String fromUsers = node.get("fromUsers").asText();
@@ -63,12 +72,10 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             } else if (String.valueOf(MsgType.MSG_LIST_FRIEND).equals(type)) {
                 String friends = node.get("online").asText();
                 queue2.put(friends);
-            } else if (String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)) {
-                int status = node.get("status").asInt();
-                queue.put(status);
+            } else if (String.valueOf(MsgType.MSG_FRIEND_MESSAGE).equals(type)) {
                 String messages = node.get("messages").asText();
                 queue2.put(messages);
-            } else if (String.valueOf(MsgType.MSG_SEND_MESSAGE1).equals(type)) {
+            } else if (String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)) {
                 String fromUser = node.get("fromUser").asText();
                 String content = node.get("content").asText();
                 String time = node.get("time").asText();
@@ -94,34 +101,27 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             } else if (String.valueOf(MsgType.MSG_LIST_GROUP_REQUEST).equals(type)) {
                 String requests = node.get("requests").asText();
                 queue2.put(requests);
-            } else if (String.valueOf(MsgType.MSG_GROUP_CHAT).equals(type)) {
-                int status = node.get("status").asInt();
-                queue.put(status);
+            } else if (String.valueOf(MsgType.MSG_GROUP_MESSAGE).equals(type)) {
                 String messages = node.get("messages").asText();
                 queue2.put(messages);
-            } else if (String.valueOf(MsgType.MSG_SEND_MESSAGE2).equals(type)) {
+            } else if (String.valueOf(MsgType.MSG_GROUP_CHAT).equals(type)) {
                 String content = node.get("content").asText();
                 String time = node.get("time").asText();
                 String from = node.get("from").asText();
                 System.out.println(time.substring(0, 19) + " " + from + ":" + content);
             } else if (String.valueOf(MsgType.MSG_SEND_FILE).equals(type) || String.valueOf(MsgType.MSG_SEND_GROUP_FILE).equals(type)) {
-                int code = node.get("code").asInt();
-                queue.put(code);
-                if(code == 0) {
-                    int port = node.get("port").asInt();
-                    queue.put(port);
-                }
-            }else if(String.valueOf(MsgType.MSG_RECEIVE_FILE).equals(type)){
                 int port = node.get("port").asInt();
-                String from = node.get("from").asText();
-                String ip = Utils.getIP();
-                int code = node.get("code").asInt();
-                if(code == 1) {
-                    new RecvFileThread(port, ip, from, null).start();
-                }else if(code == 2) {
-                    String to = node.get("to").asText();
-                    new RecvFileThread(port, ip, from, to).start();
-                }
+                queue.put(port);
+            }else if(String.valueOf(MsgType.MSG_UPLOAD_FILE).equals(type)){
+                int port = node.get("port").asInt();
+                queue.put(port);
+            }
+            else if (String.valueOf(MsgType.MSG_GET_STATUS).equals(type)) {
+                int status = node.get("status").asInt();
+                queue.put(status);
+            } else if (String.valueOf(MsgType.MSG_RECEIVE_FILE).equals(type)) {
+                String fileRequests = node.get("fileRequests").asText();
+                queue2.put(fileRequests);
             }
         }
     }

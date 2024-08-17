@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Queue;
 
 @Component
 public class ProcessMsg {
@@ -32,6 +33,10 @@ public class ProcessMsg {
     private GroupMapper groupMapper;
     @Autowired
     private MessageMapper2 messageMapper2;
+    @Autowired
+    private FileMapper fileMapper;
+    @Autowired
+    private FileRequestMapper fileRequestMapper;
 
     public static HashMap<String, ChannelHandlerContext> online1 = new HashMap<>(); //储存当前在线用户
     public static HashMap<ChannelHandlerContext, String> online2 = new HashMap<>();
@@ -196,33 +201,42 @@ public class ProcessMsg {
             ChannelHandlerContext ctx = online1.get(username);
             online1.remove(username);
             online2.remove(ctx);
-        } else if (String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)) {
+        } else if (String.valueOf(MsgType.MSG_FRIEND_MESSAGE).equals(type)) {
             String username = msg.get("username").asText();
             String friendName = msg.get("friendName").asText();
             ObjectNode node = mapper.createObjectNode();
-            node.put("type", String.valueOf(MsgType.MSG_PRIVATE_CHAT));
+            node.put("type", String.valueOf(MsgType.MSG_FRIEND_MESSAGE));
             privateChatting.put(username, friendName);
             List<Message> messages2 = messageMapper1.privateChat(username, friendName);
             String messages = mapper.writeValueAsString(messages2);
             node.put("messages", messages);
-            int status = friendMapper.selectStatus(friendName, username);
-            node.put("status", status);
-            messageMapper1.update();
+            messageMapper1.update(username,friendName);
             send(node, channel);
-        } else if (String.valueOf(MsgType.MSG_SEND_MESSAGE1).equals(type)) {
+        } else if (String.valueOf(MsgType.MSG_PRIVATE_CHAT).equals(type)) {
             String content = msg.get("content").asText();
             String fromUser = msg.get("fromUser").asText();
+            String toUser = msg.get("toUser").asText();
+            String time = msg.get("time").asText();
+            Timestamp time2 = Timestamp.valueOf(time);
+            privateChatting.put(fromUser,toUser);
             if ("q".equals(content)) {
                 privateChatting.remove(fromUser);
                 return;
             }
-            String toUser = msg.get("toUser").asText();
-            String time = msg.get("time").asText();
-            Timestamp time2 = Timestamp.valueOf(time);
+
+            int status = friendMapper.selectStatus(toUser, fromUser);
+            ObjectNode node2 = mapper.createObjectNode();
+            node2.put("type",String.valueOf(MsgType.MSG_GET_STATUS));
+            node2.put("status",status);
+            send(node2, channel);
+            if(status == 1){
+                return;
+            }
+
             ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_PRIVATE_CHAT));
             node.put("content", content);
             node.put("time", time);
-            node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE1));
             node.put("fromUser", fromUser);
 
             if (messageMapper1.count(fromUser, toUser) >= 500) {
@@ -248,35 +262,29 @@ public class ProcessMsg {
         } else if (String.valueOf(MsgType.MSG_SEND_FILE).equals(type)) {
             String to = msg.get("to").asText();
             String from = msg.get("from").asText();
-            if(isExist(to)){
-                int fromPort = getFreePort();
-                int toPort = getFreePort();
+            String time = msg.get("time").asText();
+            Timestamp time2 = Timestamp.valueOf(time.substring(0,19));
+            String filename = msg.get("filename").asText();
+            fileMapper.insert(filename,time2);
+            int fileID = fileMapper.selectID(filename,time2);
+            fileRequestMapper.insert(fileID,from,to,2,filename);
+            int fromPort = getFreePort();
+            new RecvFileThread(fromPort,fileID).start();
 
-                new TransferFile(fromPort,toPort).start();
-
-                //发送给接收者
-                ObjectNode node1 = mapper.createObjectNode();
-                node1.put("from",from);
-                node1.put("type", String.valueOf(MsgType.MSG_RECEIVE_FILE));
-                node1.put("port", toPort);
-                node1.put("code",1); //私聊接收文件
-                ChannelHandlerContext ctx = online1.get(to);
-                send(node1, ctx);
-
-                //发送给发送者
-                ObjectNode node2 = mapper.createObjectNode();
-                node2.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
-                node2.put("port", fromPort);
-                node2.put("code", 0); //告诉发送者对方在线
-                send(node2, channel);
-            }
-            else{
-                ObjectNode node = mapper.createObjectNode();
-                node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
-                node.put("code", 1); //接收者不在线
-                send(node, channel);
-            }
-        } else if (String.valueOf(MsgType.MSG_FRIEND_MENU).equals(type)) {
+            ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_SEND_FILE));
+            node.put("port",fromPort);
+            send(node, channel);
+        }else if(String.valueOf(MsgType.MSG_RECEIVE_FILE).equals(type)){
+            String username = msg.get("username").asText();
+            List<FileRequest> fileRequests = fileRequestMapper.findByUsername(username);
+            String fileRequests2 = mapper.writeValueAsString(fileRequests);
+            ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_RECEIVE_FILE));
+            node.put("fileRequests", fileRequests2);
+            send(node, channel);
+        }
+        else if (String.valueOf(MsgType.MSG_FRIEND_MENU).equals(type)) {
             String username = msg.get("username").asText();
             String friendName = msg.get("friendName").asText();
             int status = friendMapper.selectStatus(username, friendName);
@@ -288,10 +296,26 @@ public class ProcessMsg {
             String username = msg.get("username").asText();
             String friendName = msg.get("friendName").asText();
             friendMapper.modifyStatus(username, friendName, 1);
+            if(isExist(friendName) && privateChatting.containsKey(friendName) && privateChatting.get(friendName).equals(username)){
+                ObjectNode node = mapper.createObjectNode();
+                node.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                node.put("username",username);
+                node.put("code",6);
+                ChannelHandlerContext ctx = online1.get(friendName);
+                send(node, ctx);
+            }
         } else if (String.valueOf(MsgType.MSG_UNBLOCK).equals(type)) {
             String username = msg.get("username").asText();
             String friendName = msg.get("friendName").asText();
             friendMapper.modifyStatus(username, friendName, 0);
+            if(isExist(friendName) && privateChatting.containsKey(friendName) && privateChatting.get(friendName).equals(username)){
+                ObjectNode node = mapper.createObjectNode();
+                node.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                node.put("username",username);
+                node.put("code",7);
+                ChannelHandlerContext ctx = online1.get(friendName);
+                send(node, ctx);
+            }
         } else if (String.valueOf(MsgType.MSG_CREATE_GROUP).equals(type)) {
             String groupName = msg.get("groupName").asText();
             String member = msg.get("member").asText();
@@ -401,31 +425,37 @@ public class ProcessMsg {
             String groupName = msg.get("groupName").asText();
             String member = msg.get("member").asText();
             groupMapper.modifyManager(groupName, member, 3);
-        } else if (String.valueOf(MsgType.MSG_GROUP_CHAT).equals(type)) {
+        } else if (String.valueOf(MsgType.MSG_GROUP_MESSAGE).equals(type)) {
             String groupName = msg.get("groupName").asText();
-            String member = msg.get("member").asText();
-            groupChatting.put(member, groupName);
             ObjectNode node = mapper.createObjectNode();
-            node.put("type", String.valueOf(MsgType.MSG_GROUP_CHAT));
+            node.put("type", String.valueOf(MsgType.MSG_GROUP_MESSAGE));
             List<Message> messages2 = messageMapper2.groupChat(groupName);
             String messages = mapper.writeValueAsString(messages2);
             node.put("messages", messages);
-            int status = groupMapper.getStatus(groupName, member);
-            node.put("status", status);
             send(node, channel);
-        } else if (String.valueOf(MsgType.MSG_SEND_MESSAGE2).equals(type)) {
+        } else if (String.valueOf(MsgType.MSG_GROUP_CHAT).equals(type)) {
             String from = msg.get("from").asText();
             String content = msg.get("content").asText();
+            String to = msg.get("to").asText();
+            String time2 = msg.get("time").asText();
+            Timestamp time = Timestamp.valueOf(time2);
+            groupChatting.put(from,to);
             if ("q".equals(content)) {
                 groupChatting.remove(from);
                 return;
             }
 
-            String to = msg.get("to").asText();
-            String time2 = msg.get("time").asText();
-            Timestamp time = Timestamp.valueOf(time2);
+            int status = groupMapper.getStatus(to, from);
+            ObjectNode node2 = mapper.createObjectNode();
+            node2.put("type", String.valueOf(MsgType.MSG_GET_STATUS));
+            node2.put("status", status);
+            send(node2, channel);
+            if(status == 1){
+                return;
+            }
+
             ObjectNode node = mapper.createObjectNode();
-            node.put("type", String.valueOf(MsgType.MSG_SEND_MESSAGE2));
+            node.put("type", String.valueOf(MsgType.MSG_GROUP_CHAT));
             node.put("from", from);
             node.put("to", to);
             node.put("content", content);
@@ -463,10 +493,24 @@ public class ProcessMsg {
             String groupName = msg.get("groupName").asText();
             String member = msg.get("member").asText();
             groupMapper.modifyStatus(groupName, member, 1);
+            if(isExist(member) && groupChatting.containsKey(member) && groupChatting.get(member).equals(groupName)){
+                ObjectNode node = mapper.createObjectNode();
+                node.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                node.put("code", 8);
+                ChannelHandlerContext ctx = online1.get(member);
+                send(node, ctx);
+            }
         }else if(String.valueOf(MsgType.MSG_UNBLOCK_MEMBER).equals(type)){
             String groupName = msg.get("groupName").asText();
             String member = msg.get("member").asText();
             groupMapper.modifyStatus(groupName, member, 0);
+            if(isExist(member) && groupChatting.containsKey(member) && groupChatting.get(member).equals(groupName)){
+                ObjectNode node = mapper.createObjectNode();
+                node.put("type", String.valueOf(MsgType.MSG_NOTICE));
+                node.put("code", 9);
+                ChannelHandlerContext ctx = online1.get(member);
+                send(node, ctx);
+            }
         }else if(String.valueOf(MsgType.MSG_DELETE_USER).equals(type)){
             String username = msg.get("username").asText();
             userMapper.deleteUser(username);
@@ -492,7 +536,7 @@ public class ProcessMsg {
                     if(isExist(member)){
                         code = 0;
                         int toPort = getFreePort();
-                        new TransferFile(fromPort,toPort).start();
+                        new RecvFileThread(fromPort,toPort).start();
 
                         //发送给接收者
                         ObjectNode node1 = mapper.createObjectNode();
@@ -519,6 +563,38 @@ public class ProcessMsg {
                 node2.put("code", 1); //告诉发送者无人在线
                 send(node2, channel);
             }
+        }else if(String.valueOf(MsgType.MSG_GET_STATUS).equals(type)){
+            int code = msg.get("code").asInt();
+            if(code == 1) {
+                String username = msg.get("username").asText();
+                String friendName = msg.get("friendName").asText();
+
+                int status = friendMapper.selectStatus(friendName, username);
+                ObjectNode node = mapper.createObjectNode();
+                node.put("type", String.valueOf(MsgType.MSG_GET_STATUS));
+                node.put("status", status);
+                send(node, channel);
+            }
+            else if(code == 2) {
+                String username = msg.get("username").asText();
+                String groupName = msg.get("groupName").asText();
+
+                int status = groupMapper.getStatus(groupName, username);
+                ObjectNode node = mapper.createObjectNode();
+                node.put("type", String.valueOf(MsgType.MSG_GET_STATUS));
+                node.put("status", status);
+                send(node, channel);
+            }
+        }else if(String.valueOf(MsgType.MSG_UPLOAD_FILE).equals(type)){
+            int fileID = msg.get("fileID").asInt();
+            int toPort = getFreePort();
+            new SendFileThread(toPort,fileID).start();
+
+            ObjectNode node = mapper.createObjectNode();
+            node.put("type", String.valueOf(MsgType.MSG_UPLOAD_FILE));
+            node.put("port", toPort);
+            send(node, channel);
+            fileRequestMapper.updateStatus(fileID);
         }
     }
 

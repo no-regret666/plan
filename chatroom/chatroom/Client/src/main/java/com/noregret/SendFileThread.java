@@ -40,7 +40,7 @@ public class SendFileThread extends Thread {
 
             System.out.println(Utils.getColoredString(33,1,filename + " 发送完毕!"));
         } catch (IOException e) {
-            System.out.println(Utils.getColoredString(31,1,filename + " 发送失败!"));
+            e.printStackTrace();
         }
     }
 }

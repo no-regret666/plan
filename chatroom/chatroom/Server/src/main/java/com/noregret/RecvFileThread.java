@@ -1,32 +1,28 @@
 package com.noregret;
 
-import java.io.DataInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 public class RecvFileThread extends Thread {
     private final int fromPort;
+    private int fileID;
 
-    public RecvFileThread(int fromPort) {
+    public RecvFileThread(int fromPort,int fileID) {
         this.fromPort = fromPort;
+        this.fileID = fileID;
     }
 
     @Override
     public void run() {
-        Socket socket = new Socket();
-        try {
-            String ip = Utils.getIP();
-            socket.connect(new InetSocketAddress(ip, fromPort));
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
         try{
+            ServerSocket serverSocket = new ServerSocket(fromPort);
+            Socket socket = serverSocket.accept();
+
             DataInputStream dis = new DataInputStream(socket.getInputStream());
-            String filename = dis.readUTF();
-            FileOutputStream fos = new FileOutputStream(filename);
+            File file = new File("/home/noregret/chatroom_file/" + fileID);
+            FileOutputStream fos = new FileOutputStream(file);
             byte[] buffer = new byte[1024];
             int len;
             while((len = dis.read(buffer)) != -1){
@@ -37,7 +33,7 @@ public class RecvFileThread extends Thread {
             fos.close();
             socket.close();
 
-            System.out.println(Utils.getColoredString(33,1,"接收完成!"));
+            System.out.println("文件接收完成!");
         } catch (IOException e) {
             e.printStackTrace();
         }
